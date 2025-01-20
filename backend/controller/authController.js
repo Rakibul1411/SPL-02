@@ -1,10 +1,12 @@
 import bcrypt from 'bcrypt';
-import User from '../src/models/userTable.js';
+import User from '../models/userTable.js';
 
 
 //registration function
 export const registration = async (req, res) => {
   const { name, email, password, role } = req.body;
+
+  //console.log(req.body);
 
   try {
     // Check if email already exists

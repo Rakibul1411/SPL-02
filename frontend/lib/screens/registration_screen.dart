@@ -23,6 +23,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _showPasswordRequirements = false;
   bool _passwordVisible = false;
   bool _confirmPasswordVisible = false;
+  
   final String passwordPattern = r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$';
 
   @override
@@ -45,7 +46,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     if (_formKey.currentState!.validate()) {
       try {
         final response = await http.post(
-          Uri.parse('http://localhost:3003/insight/registration/'), // Replace with your backend URL
+          Uri.parse('http://localhost:3003/auth/registration/'), // Replace with your backend URL
 
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
@@ -132,7 +133,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             _userNameLabel = 'Enter your shop name';
                             break;
                           case 'Gig Worker':
-                          default:
                             _userNameLabel = 'Enter your name';
                             break;
                         }

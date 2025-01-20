@@ -1,18 +1,25 @@
 import 'package:flutter/material.dart';
-import 'screens/registration_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'screens/create_task_screen.dart'; // Adjust the import path as needed
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: RegistrationScreen(),
-      debugShowCheckedModeBanner: false,
+    return MaterialApp(
+      title: 'Task App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: CreateTaskScreen(),
+      debugShowCheckedModeBanner: false, // Or your home screen
     );
   }
 }
