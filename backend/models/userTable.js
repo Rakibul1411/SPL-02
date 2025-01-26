@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
+//import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 
-// Define the schema
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -24,13 +25,22 @@ const userSchema = new mongoose.Schema(
         type: String,
         required: true
     },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    otp: {
+        type: String
+    },
+    otpExpiry: {
+        type: Date
+    },
   }, 
   
   { timestamps: true }
   
 );
 
-// Create the model
 const User = mongoose.model('User', userSchema);
 
 // Export the model

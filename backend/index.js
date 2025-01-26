@@ -2,33 +2,54 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// import homeRoute from './routes/home.js';
+
 import authRoute from './routes/auth.js';
 import taskRoute from './routes/task.js';
- //import loginRoute from './routes/login.js';
+import profileRoute from './routes/profileRoute.js';
+import reportRoute from './routes/report.js';
+import dotenv from 'dotenv';
+
+
+dotenv.config();
 
 const app = express();
 
-app.use(cors()); // Middleware to enable CORS
-app.use(express.json()); // Middleware to parse JSON requests
-app.use(express.urlencoded({ extended: true })); // is part of an Express.js application and is used to configure middleware for parsing incoming requests with URL-encoded payloads
 
-// Connect to MongoDB
-mongoose.connect('mongodb+srv://mdrakibul11611:rakibul11611@cluster0.4rzyv.mongodb.net/sqldb', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-}).then(() => {     
-    console.log('Connected to MongoDB');
+app.use(cors({
+  origin: '*',
+  methods: ['POST', 'PUT', 'GET', 'OPTIONS', 'HEAD'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+
+mongoose.connect(process.env.MONGO_URI, {
+
+}).then(() => {
+    console.log('Connected to MongoDB')
 
     // Routes
     app.use('/auth', authRoute);
 
     app.use('/task', taskRoute);
 
-    app.listen(3003, () => {
-        console.log('Server is running on port 3003');
+    app.use('/profile', profileRoute);
+
+    app.use('/report', reportRoute);
+
+
+    const PORT = process.env.PORT || 3005;
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server running on port ${PORT}`);
     });
-}).catch((error) => {
-    console.error('Error connecting to MongoDB:', error.message);
+}).catch((err) => {
+    console.error('MongoDB connection error:', err)
 });
