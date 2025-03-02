@@ -32,27 +32,6 @@ class AuthProvider {
   }
 
 
-  // Send Registration OTP
-  // Future<Map<String, dynamic>> sendRegistrationOTP(String email) async {
-  //   final url = Uri.parse('$baseUrl/auth/send-registration-otp/');
-  //   try {
-  //     final response = await http.post(
-  //       url,
-  //       headers: {'Content-Type': 'application/json'},
-  //       body: jsonEncode({'email': email}),
-  //     );
-  //
-  //     if (response.statusCode == 200) {
-  //       return jsonDecode(response.body);
-  //     } else {
-  //       final responseBody = jsonDecode(response.body);
-  //       throw Exception(responseBody['message'] ?? 'Failed to send registration OTP');
-  //     }
-  //   } catch (error) {
-  //     throw Exception('Failed to send registration OTP: $error');
-  //   }
-  // }
-
   // Verify Registration OTP
   Future<Map<String, dynamic>> verifyRegistrationOTP(
       {required String email, required String otp}) async {
@@ -99,27 +78,6 @@ class AuthProvider {
     }
   }
 
-
-  // Send Login OTP
-  // Future<Map<String, dynamic>> sendLoginOTP(String email) async {
-  //   final url = Uri.parse('$baseUrl/auth/send-login-otp/');
-  //   try {
-  //     final response = await http.post(
-  //       url,
-  //       headers: {'Content-Type': 'application/json'},
-  //       body: jsonEncode({'email': email}),
-  //     );
-  //
-  //     if (response.statusCode == 200) {
-  //       return jsonDecode(response.body);
-  //     } else {
-  //       final responseBody = jsonDecode(response.body);
-  //       throw Exception(responseBody['message'] ?? 'Failed to send login OTP');
-  //     }
-  //   } catch (error) {
-  //     throw Exception('Failed to send login OTP: $error');
-  //   }
-  // }
 
   // Verify Login OTP
   Future<Map<String, dynamic>> verifyLoginOTP(

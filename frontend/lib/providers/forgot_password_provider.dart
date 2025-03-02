@@ -1,56 +1,86 @@
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class ForgotPasswordProvider extends ChangeNotifier {
-  bool _isOtpSent = false;
-  bool _isOtpVerified = false;
+// ForgotPasswordState to manage the forgot password OTP flow state
+class ForgotPasswordState {
+  final bool isOtpSent;
+  final bool isOtpVerified;
+  final String? errorMessage;
 
-  bool get isOtpSent => _isOtpSent;
-  bool get isOtpVerified => _isOtpVerified;
+  ForgotPasswordState({
+    required this.isOtpSent,
+    required this.isOtpVerified,
+    this.errorMessage,
+  });
 
-  Future<void> sendOtp(String email) async {
+  ForgotPasswordState copyWith({
+    bool? isOtpSent,
+    bool? isOtpVerified,
+    String? errorMessage,
+  }) {
+    return ForgotPasswordState(
+      isOtpSent: isOtpSent ?? this.isOtpSent,
+      isOtpVerified: isOtpVerified ?? this.isOtpVerified,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
+}
+
+// ForgotPasswordProvider class to handle forgot password logic
+class ForgotPasswordProvider extends StateNotifier<ForgotPasswordState> {
+  ForgotPasswordProvider() : super(ForgotPasswordState(isOtpSent: false, isOtpVerified: false));
+
+  final String baseUrl = 'http://localhost:3005'; // Replace with your backend URL
+
+  // Method to send OTP for password reset
+  Future<void> sendPasswordResetOTP(String email) async {
+    final url = Uri.parse('$baseUrl/auth/send-password-reset-otp');
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:3005/auth/send-otp'), // Replace with your backend URL
+        url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
 
       if (response.statusCode == 200) {
-        _isOtpSent = true;
-        notifyListeners();
+        state = state.copyWith(isOtpSent: true, errorMessage: null);
       } else {
-        throw jsonDecode(response.body)['message'];
+        final responseBody = jsonDecode(response.body);
+        state = state.copyWith(errorMessage: responseBody['message'] ?? 'Failed to send OTP');
       }
     } catch (error) {
-      throw 'Failed to send OTP: $error';
+      state = state.copyWith(errorMessage: 'Failed to send password reset OTP: $error');
     }
   }
 
-  Future<void> verifyOtp(String email, String otp) async {
+  // Method to verify OTP for password reset
+  Future<void> verifyPasswordResetOTP({required String email, required String otp}) async {
+    final url = Uri.parse('$baseUrl/auth/verify-password-reset-otp');
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:3005/auth/verify-otp'), // Replace with your backend URL
+        url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'otp': otp}),
       );
 
       if (response.statusCode == 200) {
-        _isOtpVerified = true;
-        notifyListeners();
+        state = state.copyWith(isOtpVerified: true, errorMessage: null);
       } else {
-        throw jsonDecode(response.body)['message'];
+        final responseBody = jsonDecode(response.body);
+        state = state.copyWith(errorMessage: responseBody['message'] ?? 'Failed to verify OTP');
       }
     } catch (error) {
-      throw 'Failed to verify OTP: $error';
+      state = state.copyWith(errorMessage: 'Failed to verify password reset OTP: $error');
     }
   }
 
+  // Method to reset the password
   Future<void> resetPassword(String email, String newPassword) async {
+    final url = Uri.parse('$baseUrl/auth/reset-password');
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:3005/auth/reset-password'), // Replace with your backend URL
+        url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
@@ -58,11 +88,19 @@ class ForgotPasswordProvider extends ChangeNotifier {
         }),
       );
 
-      if (response.statusCode != 200) {
-        throw jsonDecode(response.body)['message'];
+      if (response.statusCode == 200) {
+        state = state.copyWith(errorMessage: null);
+      } else {
+        final responseBody = jsonDecode(response.body);
+        state = state.copyWith(errorMessage: responseBody['message'] ?? 'Failed to reset password');
       }
     } catch (error) {
-      throw 'Failed to reset password: $error';
+      state = state.copyWith(errorMessage: 'Failed to reset password: $error');
     }
   }
 }
+
+// Create the StateNotifierProvider for the ForgotPasswordProvider
+final forgotPasswordProvider = StateNotifierProvider<ForgotPasswordProvider, ForgotPasswordState>((ref) {
+  return ForgotPasswordProvider();
+});

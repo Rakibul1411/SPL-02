@@ -6,6 +6,7 @@ import '../providers/authProvider.dart';
 import './Gig_Worker/gig_worker_screen.dart';
 import './Company/company_screen.dart';
 import './Shop Manager/shop_manager_screen.dart';
+import 'ForgotPasswordScreen.dart';
 import 'otp_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -24,7 +25,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final AuthProvider _authProvider = AuthProvider();
 
   Future<void> _login() async {
-    // Original login logic remains unchanged
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
@@ -65,7 +65,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleUserRole(String role) {
-    // Original role handling logic remains unchanged
     switch (role) {
       case 'Gig Worker':
         Navigator.pushReplacement(
@@ -136,6 +135,8 @@ class _LoginScreenState extends State<LoginScreen> {
               _buildEmailField(),
               const SizedBox(height: 20),
               _buildPasswordField(),
+              const SizedBox(height: 8),  // Space between password and forgot password
+              _buildForgotPasswordPrompt(),  // Forgot Password link here
               const SizedBox(height: 24),
               _buildLoginButton(),
               const SizedBox(height: 20),
@@ -226,11 +227,12 @@ class _LoginScreenState extends State<LoginScreen> {
         child: _isLoading
             ? const CircularProgressIndicator(color: Colors.white)
             : Text(
-            'Login',
-            style: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w600
-            )
+          'Login',
+          style: GoogleFonts.montserrat(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+          ),
         ),
       ),
     );
@@ -238,28 +240,51 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildRegistrationPrompt() {
     return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-    Text(
-    "Don't have an account? ",
-    style: GoogleFonts.openSans(color: Colors.grey)
-    ),
-    GestureDetector(
-    onTap: () {
-    Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(builder: (context) => const RegistrationScreen()),
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          "Don't have an account? ",
+          style: GoogleFonts.openSans(color: Colors.grey),
+        ),
+        GestureDetector(
+          onTap: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const RegistrationScreen()),
+            );
+          },
+          child: Text(
+            'Register',
+            style: GoogleFonts.montserrat(
+              color: Colors.blue[700],
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
     );
-    },
-    child: Text(
-    'Register',
-    style: GoogleFonts.montserrat(
-    color: Colors.blue[700],
-    fontWeight: FontWeight.bold
-    ),
-    ),
-    ),
-    ],
+  }
+
+  // "Forgot Password?" prompt widget (now on the right side)
+  Widget _buildForgotPasswordPrompt() {
+    return Align(
+      alignment: Alignment.centerRight,  // Aligning to the right side
+      child: GestureDetector(
+        onTap: () {
+          // Navigate to ForgotPasswordScreen when clicked
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+          );
+        },
+        child: Text(
+          'Forgot Password?',
+          style: GoogleFonts.montserrat(
+            color: Colors.blue[700],
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
-    }
+  }
 }

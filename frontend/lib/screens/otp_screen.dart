@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import '../providers/authProvider.dart';
-import 'after_registration_screen.dart';
+import '../providers/forgot_password_provider.dart'; // Import forgot password provider
+import 'ResetPasswordScreen.dart';
+import 'after_registration_screen.dart'; // Assuming you need to show a confirmation screen or redirect
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
 
-class OTPScreen extends StatefulWidget {
+class OTPScreen extends ConsumerStatefulWidget {
   final String email;
   final bool isRegistration;
+  final bool isForgotPassword; // Flag to indicate Forgot Password flow
   final String? role;
 
   const OTPScreen({
     super.key,
     required this.email,
     required this.isRegistration,
+    this.isForgotPassword = false, // Default value for non-forgot password flow
     this.role,
   });
 
@@ -18,15 +23,23 @@ class OTPScreen extends StatefulWidget {
   _OTPScreenState createState() => _OTPScreenState();
 }
 
-class _OTPScreenState extends State<OTPScreen> {
+class _OTPScreenState extends ConsumerState<OTPScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _otpController = TextEditingController();
   final AuthProvider _authProvider = AuthProvider();
   bool _isVerifyingOTP = false;
 
+  // Method to resend OTP for forgot password flow
   Future<void> _resendOTP() async {
     try {
-      await _authProvider.resendOTP(widget.email);
+      if (widget.isForgotPassword) {
+        // Resend OTP logic for forgot password flow
+        await ref.read(forgotPasswordProvider.notifier).sendPasswordResetOTP(widget.email);
+      } else {
+        // Resend OTP logic for registration/login
+        await _authProvider.resendOTP(widget.email);
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('A new OTP has been sent to your email')),
       );
@@ -37,9 +50,7 @@ class _OTPScreenState extends State<OTPScreen> {
     }
   }
 
-
-
-
+  // Method to verify OTP
   Future<void> _verifyOTP() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -47,25 +58,56 @@ class _OTPScreenState extends State<OTPScreen> {
       });
 
       try {
-        final response = widget.isRegistration
-            ? await _authProvider.verifyRegistrationOTP(
-          email: widget.email,
-          otp: _otpController.text,
-        )
-            : await _authProvider.verifyLoginOTP(
-          email: widget.email,
-          otp: _otpController.text,
-        );
-
-        print(response);
-
-        if (widget.isRegistration) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const AfterRegistrationScreen()),
+        // Verify OTP for forgot password flow
+        if (widget.isForgotPassword) {
+          await ref.read(forgotPasswordProvider.notifier).verifyPasswordResetOTP(
+            email: widget.email,
+            otp: _otpController.text,
           );
+
+          final forgotPasswordState = ref.read(forgotPasswordProvider);
+
+          if (forgotPasswordState.isOtpVerified) {
+            // OTP Verified successfully
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('OTP Verified. You can now reset your password.')),
+            );
+
+            // Proceed to reset password
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => ResetPasswordScreen(email: widget.email)), // Navigate to reset password screen
+            );
+          } else {
+            // OTP verification failed
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('OTP verification failed: ${forgotPasswordState.errorMessage}')),
+            );
+          }
         } else {
-          Navigator.pop(context, widget.role);
+          // OTP verification for registration/login
+          final response = widget.isRegistration
+              ? await _authProvider.verifyRegistrationOTP(
+            email: widget.email,
+            otp: _otpController.text,
+          )
+              : await _authProvider.verifyLoginOTP(
+            email: widget.email,
+            otp: _otpController.text,
+          );
+
+          if (response != null) {
+            // Registration flow: navigate to AfterRegistrationScreen
+            if (widget.isRegistration) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const AfterRegistrationScreen()),
+              );
+            } else {
+              // Login/forgot password: pop and return the role
+              Navigator.pop(context, widget.role);
+            }
+          }
         }
       } catch (error) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -118,7 +160,7 @@ class _OTPScreenState extends State<OTPScreen> {
                   ),
                   const SizedBox(height: 32),
                   Text(
-                    'Verification Code',
+                    widget.isForgotPassword ? 'Password Reset OTP' : 'Verification Code',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
@@ -126,7 +168,9 @@ class _OTPScreenState extends State<OTPScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'We sent a verification code to',
+                    widget.isForgotPassword
+                        ? 'We sent a password reset OTP to'
+                        : 'We sent a verification code to',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: Colors.black54,
                     ),
