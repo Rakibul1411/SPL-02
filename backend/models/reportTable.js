@@ -6,6 +6,7 @@ const ReportSchema = new mongoose.Schema({
   workerId: { type: String, required: true },
   reportText: { type: String, required: true },
   imageUrl: { type: String, required: false },
+  fileUrl: { type: String, required: false },
   submittedAt: { type: Date, default: Date.now },
   reportRating: { type: Number, default: null },
 });
