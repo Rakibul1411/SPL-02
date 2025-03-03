@@ -4,7 +4,7 @@ import Task from '../models/taskTable.js';
 export const getAllTasks = async (req, res) => {
   try {
     const tasks = await Task.find();
-    console.log('Fetched tasks:', tasks);
+    //console.log('Fetched tasks:', tasks);
     res.status(200).json(tasks);
   } catch (err) {
     console.error('Error fetching tasks:', err);

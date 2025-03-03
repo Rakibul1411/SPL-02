@@ -1,11 +1,13 @@
+import 'package:frontend/screens/registration_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'registration_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../providers/authProvider.dart';
+import './Gig_Worker/gig_worker_screen.dart';
+import './Company/company_screen.dart';
+import './Shop Manager/shop_manager_screen.dart';
+import 'ForgotPasswordScreen.dart';
+import 'otp_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,259 +20,269 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _rememberMe = false;
   bool _passwordVisible = false;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  bool _isLoading = false;
+  final AuthProvider _authProvider = AuthProvider();
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
       try {
-        final response = await http.post(
-          Uri.parse('http://localhost:3003/insight/login'), // Replace with your backend URL
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'email': _emailController.text,
-            'password': _passwordController.text,
-          }),
+        final response = await _authProvider.loginUser(
+          _emailController.text,
+          _passwordController.text,
         );
 
-        if (response.statusCode == 200) {
-          final responseBody = jsonDecode(response.body);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Welcome ${responseBody['user']['name']}!')),
+        print(response['role']);
+
+        if (response['requiresOTP'] == true) {
+          final role = response['role'];
+          final verifiedRole = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OTPScreen(
+                email: _emailController.text,
+                isRegistration: false,
+                role: role,
+              ),
+            ),
           );
-          // Navigate to the home page or dashboard
+
+          if (verifiedRole != null) {
+            _handleUserRole(verifiedRole);
+          }
         } else {
-          final responseBody = jsonDecode(response.body);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${responseBody['message']}')),
-          );
+          _handleUserRole(response['user']['role']);
         }
       } catch (error) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Login failed: $error')),
         );
+      } finally {
+        setState(() => _isLoading = false);
       }
     }
   }
 
-  Future<void> _handleGoogleSignIn() async {
-    try {
-      await _googleSignIn.signIn();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Google Sign-In Successful!')),
-      );
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Google Sign-In Failed: $error')),
-      );
-    }
-  }
-
-  Future<void> _handleFacebookSignIn() async {
-    try {
-      final LoginResult result = await FacebookAuth.instance.login();
-      if (result.status == LoginStatus.success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Facebook Sign-In Successful!')),
+  void _handleUserRole(String role) {
+    switch (role) {
+      case 'Gig Worker':
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const GigWorkerScreen()),
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Facebook Sign-In Failed: ${result.message}')),
+        break;
+      case 'Company':
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const CompanyScreen()),
         );
-      }
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Facebook Sign-In Failed: $error')),
-      );
+        break;
+      case 'Shop Manager':
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ShopManagerScreen()),
+        );
+        break;
+      default:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unknown user role!')),
+        );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          'Sign In to InsightHive',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-        ),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
         centerTitle: true,
-        backgroundColor: Colors.blue,
+        title: Text(
+          'Login',
+          style: GoogleFonts.montserrat(
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.black54),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(40.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Sign In to your account',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 21, 164, 177)),
-            ),
-            const SizedBox(height: 14),
-            Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      if (!EmailValidator.validate(value)) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      labelText: 'Enter your Password here',
-                      border: const OutlineInputBorder(),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _passwordVisible ? Icons.visibility : Icons.visibility_off,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _passwordVisible = !_passwordVisible;
-                          });
-                        },
-                      ),
-                    ),
-                    obscureText: !_passwordVisible,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Checkbox(
-                            value: _rememberMe,
-                            onChanged: (value) {
-                              setState(() {
-                                _rememberMe = value!;
-                              });
-                            },
-                          ),
-                          const Text('Remember Me?'),
-                        ],
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          // Navigate to forgot password screen
-                        },
-                        child: const Text(
-                          'Forgot Password?',
-                          style: TextStyle(
-                            decoration: TextDecoration.underline,
-                            decorationColor: Color.fromARGB(255, 5, 161, 0),
-                            color: Color.fromARGB(255, 5, 161, 0),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-                  ElevatedButton(
-                    onPressed: _login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 21, 164, 177),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 140, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    child: const Text('Sign In'),
-                  ),
-                  const SizedBox(height: 50),
-                  const Text(
-                    'OR CONNECT WITH',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 50),
-                  ElevatedButton.icon(
-                    onPressed: _handleFacebookSignIn,
-                    icon: const FaIcon(FontAwesomeIcons.facebook, color: Colors.white),
-                    label: const Text('Sign In with Facebook'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton.icon(
-                    onPressed: _handleGoogleSignIn,
-                    icon: const FaIcon(FontAwesomeIcons.google, color: Colors.white),
-                    label: const Text('Sign In with Google'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 50),
-                  const Text(
-                    'Don\'t have an account?',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const RegistrationScreen()),
-                      );
-                    },
-                    child: const Text(
-                      'Create Account',
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 21, 164, 177),
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        decoration: TextDecoration.underline,
-                        decorationColor: Color.fromARGB(255, 21, 164, 177),
-                      ),
-                    ),
-                  ),
-                ],
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Welcome Back',
+                style: GoogleFonts.montserrat(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[700]
+                ),
               ),
+              const SizedBox(height: 8),
+              Text(
+                'Login to continue',
+                style: GoogleFonts.openSans(
+                    fontSize: 16,
+                    color: Colors.grey[600]
+                ),
+              ),
+              const SizedBox(height: 32),
+              _buildEmailField(),
+              const SizedBox(height: 20),
+              _buildPasswordField(),
+              const SizedBox(height: 8),  // Space between password and forgot password
+              _buildForgotPasswordPrompt(),  // Forgot Password link here
+              const SizedBox(height: 24),
+              _buildLoginButton(),
+              const SizedBox(height: 20),
+              _buildRegistrationPrompt(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmailField() {
+    return TextFormField(
+      controller: _emailController,
+      decoration: InputDecoration(
+        labelText: 'Email',
+        prefixIcon: Icon(Icons.email, color: Colors.blue[700]),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        filled: true,
+        fillColor: Colors.blue[50],
+      ),
+      keyboardType: TextInputType.emailAddress,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your email';
+        }
+        if (!EmailValidator.validate(value)) {
+          return 'Enter a valid email';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return TextFormField(
+      controller: _passwordController,
+      decoration: InputDecoration(
+        labelText: 'Password',
+        prefixIcon: Icon(Icons.lock, color: Colors.blue[700]),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _passwordVisible ? Icons.visibility : Icons.visibility_off,
+            color: Colors.blue[700],
+          ),
+          onPressed: () {
+            setState(() {
+              _passwordVisible = !_passwordVisible;
+            });
+          },
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        filled: true,
+        fillColor: Colors.blue[50],
+      ),
+      obscureText: !_passwordVisible,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your password';
+        }
+        if (value.length < 8) {
+          return 'Password must be at least 8 characters long';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildLoginButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _login,
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          backgroundColor: Colors.blue[700],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 5,
+        ),
+        child: _isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : Text(
+          'Login',
+          style: GoogleFonts.montserrat(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRegistrationPrompt() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          "Don't have an account? ",
+          style: GoogleFonts.openSans(color: Colors.grey),
+        ),
+        GestureDetector(
+          onTap: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const RegistrationScreen()),
+            );
+          },
+          child: Text(
+            'Register',
+            style: GoogleFonts.montserrat(
+              color: Colors.blue[700],
+              fontWeight: FontWeight.bold,
             ),
-          ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // "Forgot Password?" prompt widget (now on the right side)
+  Widget _buildForgotPasswordPrompt() {
+    return Align(
+      alignment: Alignment.centerRight,  // Aligning to the right side
+      child: GestureDetector(
+        onTap: () {
+          // Navigate to ForgotPasswordScreen when clicked
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+          );
+        },
+        child: Text(
+          'Forgot Password?',
+          style: GoogleFonts.montserrat(
+            color: Colors.blue[700],
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );

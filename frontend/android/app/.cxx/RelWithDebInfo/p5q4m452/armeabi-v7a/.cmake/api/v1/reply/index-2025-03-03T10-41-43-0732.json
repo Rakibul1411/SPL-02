@@ -1,0 +1,92 @@
+{
+	"cmake" : 
+	{
+		"generator" : 
+		{
+			"multiConfig" : false,
+			"name" : "Ninja"
+		},
+		"paths" : 
+		{
+			"cmake" : "/home/hasnain/Android/Sdk/cmake/3.22.1/bin/cmake",
+			"cpack" : "/home/hasnain/Android/Sdk/cmake/3.22.1/bin/cpack",
+			"ctest" : "/home/hasnain/Android/Sdk/cmake/3.22.1/bin/ctest",
+			"root" : "/home/hasnain/Android/Sdk/cmake/3.22.1/share/cmake-3.22"
+		},
+		"version" : 
+		{
+			"isDirty" : false,
+			"major" : 3,
+			"minor" : 22,
+			"patch" : 1,
+			"string" : "3.22.1-g37088a8",
+			"suffix" : "g37088a8"
+		}
+	},
+	"objects" : 
+	[
+		{
+			"jsonFile" : "codemodel-v2-c545c3faa2865df4839c.json",
+			"kind" : "codemodel",
+			"version" : 
+			{
+				"major" : 2,
+				"minor" : 3
+			}
+		},
+		{
+			"jsonFile" : "cache-v2-d16a010c05ebed81bc7e.json",
+			"kind" : "cache",
+			"version" : 
+			{
+				"major" : 2,
+				"minor" : 0
+			}
+		},
+		{
+			"jsonFile" : "cmakeFiles-v1-a06887f4a7393e3da386.json",
+			"kind" : "cmakeFiles",
+			"version" : 
+			{
+				"major" : 1,
+				"minor" : 0
+			}
+		}
+	],
+	"reply" : 
+	{
+		"client-agp" : 
+		{
+			"cache-v2" : 
+			{
+				"jsonFile" : "cache-v2-d16a010c05ebed81bc7e.json",
+				"kind" : "cache",
+				"version" : 
+				{
+					"major" : 2,
+					"minor" : 0
+				}
+			},
+			"cmakeFiles-v1" : 
+			{
+				"jsonFile" : "cmakeFiles-v1-a06887f4a7393e3da386.json",
+				"kind" : "cmakeFiles",
+				"version" : 
+				{
+					"major" : 1,
+					"minor" : 0
+				}
+			},
+			"codemodel-v2" : 
+			{
+				"jsonFile" : "codemodel-v2-c545c3faa2865df4839c.json",
+				"kind" : "codemodel",
+				"version" : 
+				{
+					"major" : 2,
+					"minor" : 3
+				}
+			}
+		}
+	}
+}

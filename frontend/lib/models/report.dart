@@ -4,6 +4,7 @@ class Report {
   final String workerId;
   final String reportText;
   final String? imageUrl;
+  final String? fileUrl; // Add this field
   final DateTime submittedAt;
   final double? reportRating;
 
@@ -13,6 +14,7 @@ class Report {
     required this.workerId,
     required this.reportText,
     this.imageUrl,
+    this.fileUrl, // Add this field
     required this.submittedAt,
     this.reportRating,
   });
@@ -24,6 +26,7 @@ class Report {
       'workerId': workerId,
       'reportText': reportText,
       'imageUrl': imageUrl,
+      'fileUrl': fileUrl, // Add this field
       'submittedAt': submittedAt.toIso8601String(),
       'reportRating': reportRating,
     };
@@ -36,6 +39,7 @@ class Report {
       workerId: json['workerId'],
       reportText: json['reportText'],
       imageUrl: json['imageUrl'],
+      fileUrl: json['fileUrl'], // Add this field
       submittedAt: DateTime.parse(json['submittedAt']),
       reportRating: json['reportRating']?.toDouble(),
     );

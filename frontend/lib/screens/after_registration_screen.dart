@@ -8,62 +8,104 @@ class AfterRegistrationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Welcome"),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
         centerTitle: true,
-        backgroundColor: Colors.blue,
+        title: Text(
+          "Registration Complete",
+          style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        iconTheme: IconThemeData(color: Colors.black54),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "Welcome to our system!",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              "You can log in to explore or exit the system.",
-              style: TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Icon(
+                  Icons.check_circle_outline,
+                  size: 100,
+                  color: Colors.green,
+                ),
               ),
-              child: const Text(
-                "Login",
-                style: TextStyle(color: Colors.white, fontSize: 18),
+              const SizedBox(height: 24),
+              Text(
+                "Welcome to Our Platform!",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+                textAlign: TextAlign.center,
               ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LaunchScreen()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+              const SizedBox(height: 16),
+              Text(
+                "Your account has been successfully created. You can now log in or return to the launch screen.",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black54,
+                ),
+                textAlign: TextAlign.center,
               ),
-              child: const Text(
-                "Exit",
-                style: TextStyle(color: Colors.white, fontSize: 18),
+              const SizedBox(height: 40),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue[600],
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 3,
+                ),
+                child: Text(
+                  "Proceed to Login",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              OutlinedButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LaunchScreen()),
+                  );
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.blue[600],
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  side: BorderSide(color: Colors.blue[600]!, width: 2),
+                ),
+                child: Text(
+                  "Return to Launch Screen",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

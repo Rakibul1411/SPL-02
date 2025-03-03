@@ -78,6 +78,8 @@ class TaskNotifier extends StateNotifier<List<Task>> {
         body: json.encode({}), // You can pass an empty body or additional data if needed
       );
 
+      print(response.body);
+
       if (response.statusCode == 200) {
         // Remove the task from the state
         state = state.where((t) => t.id != taskId).toList();

@@ -6,6 +6,8 @@ class Task {
   final double incentive;
   final DateTime deadline;
   final String status;
+  // final String assignedTo;
+  // final String verificationCode;
 
   Task({
     this.id, // Include the id field

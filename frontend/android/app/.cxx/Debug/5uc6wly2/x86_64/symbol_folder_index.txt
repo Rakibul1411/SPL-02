@@ -1,0 +1,1 @@
+/home/hasnain/StudioProjects/InsightHive_SPL-02-1408/frontend/build/app/intermediates/cxx/Debug/5uc6wly2/obj/x86_64

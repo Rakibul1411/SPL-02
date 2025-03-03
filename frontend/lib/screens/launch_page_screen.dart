@@ -19,7 +19,7 @@ class _LaunchScreenState extends State<LaunchScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1800),
       vsync: this,
     );
 
@@ -29,17 +29,17 @@ class _LaunchScreenState extends State<LaunchScreen> with SingleTickerProviderSt
     ).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+        curve: const Interval(0.0, 0.6, curve: Curves.easeInOut),
       ),
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.5),
+      begin: const Offset(0, 0.3),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
+        curve: const Interval(0.3, 0.9, curve: Curves.easeInOut),
       ),
     );
 
@@ -57,164 +57,212 @@ class _LaunchScreenState extends State<LaunchScreen> with SingleTickerProviderSt
     return Scaffold(
       body: Stack(
         children: [
-          // Gradient background
+          // Background with more subtle gradient
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF2193b0), Color(0xFF6dd5ed)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF1a237e), // Deeper blue
+                  Color(0xFF0277bd), // Rich medium blue
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
             ),
           ),
-          // Main content
+          // Subtle pattern overlay
+          Opacity(
+            opacity: 0.05,
+            child: Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: NetworkImage('https://www.transparenttextures.com/patterns/diamond-upholstery.png'),
+                  repeat: ImageRepeat.repeat,
+                ),
+              ),
+            ),
+          ),
           SafeArea(
-            child: Center( // Center the entire column
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center, // Ensure center alignment
-                  children: [
-                    FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: Column(
-                        children: [
-                          // Improved logo design
-                          Container(
-                            width: 80,
-                            height: 80,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                children: [
+                  const Spacer(),
+                  // Logo and branding section
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Column(
+                      children: [
+                        Hero(
+                          tag: 'app-logo',
+                          child: Container(
+                            width: 120,
+                            height: 120,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF00c6ff), Color(0xFF0072ff)],
+                              gradient: LinearGradient(
+                                colors: [
+                                  Color(0xFF2979ff),
+                                  Color(0xFF00b0ff),
+                                ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
-                              boxShadow: const [
+                              boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black26,
-                                  blurRadius: 8,
-                                  spreadRadius: 2,
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 15,
+                                  offset: Offset(0, 8),
                                 ),
                               ],
                             ),
                             child: const Icon(
                               Icons.insights,
-                              size: 40,
+                              size: 60,
                               color: Colors.white,
                             ),
                           ),
-                          const SizedBox(height: 24.0),
-                          Text(
-                            'Welcome to InsightHive',
-                            style: GoogleFonts.montserrat(
-                              fontSize: 24.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              letterSpacing: 1.2,
-                            ),
+                        ),
+                        const SizedBox(height: 32.0),
+                        Text(
+                          'InsightHive',
+                          style: GoogleFonts.poppins(
+                            fontSize: 36.0,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: 1.2,
                           ),
-                          const SizedBox(height: 12.0),
-                          Text(
-                            'Your Pathway to Achievement',
-                            style: GoogleFonts.openSans(
-                              fontSize: 16.0,
-                              color: Colors.white70,
-                              letterSpacing: 0.5,
+                        ),
+                        const SizedBox(height: 16.0),
+                        Text(
+                          'Your Pathway to Achievement',
+                          style: GoogleFonts.inter(
+                            fontSize: 18.0,
+                            color: Colors.white.withOpacity(0.85),
+                            letterSpacing: 0.5,
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(flex: 2),
+                  // Buttons section
+                  SlideTransition(
+                    position: _slideAnimation,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Column(
+                        children: [
+                          _buildButton(
+                            text: 'Get Started',
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const RegistrationScreen(),
+                              ),
                             ),
+                            isPrimary: true,
+                          ),
+                          const SizedBox(height: 16.0),
+                          _buildButton(
+                            text: 'Log In',
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LoginScreen(),
+                              ),
+                            ),
+                            isPrimary: false,
                           ),
                         ],
                       ),
                     ),
-                    const Spacer(flex: 2),
-                    SlideTransition(
-                      position: _slideAnimation,
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Column(
-                          children: [
-                            SizedBox(
-                              width: double.infinity, // Make button stretch to full width
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const RegistrationScreen(),
-                                    ),
-                                  );
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(24.0),
-                                  ),
-                                  elevation: 5,
-                                  backgroundColor: Colors.white,
-                                ),
-                                child: Text(
-                                  'Get Started',
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 16.0,
-                                    fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF0072ff),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 16.0),
-                            SizedBox(
-                              width: double.infinity, // Make button stretch to full width
-                              child: OutlinedButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const LoginScreen(),
-                                    ),
-                                  );
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                  side: const BorderSide(color: Colors.white70),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(24.0),
-                                  ),
-                                ),
-                                child: Text(
-                                  'Log In',
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 16.0,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                  ),
+                  const Spacer(),
+                  // Terms and conditions text
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Text(
+                      'By continuing, you agree to our\nTerms of Service and Privacy Policy',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        fontSize: 13.0,
+                        color: Colors.white.withOpacity(0.7),
+                        height: 1.6,
+                        letterSpacing: 0.3,
                       ),
                     ),
-                    const Spacer(),
-                    FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: Text(
-                        'By continuing, you agree to our\nTerms of Service and Privacy Policy',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.roboto(
-                          fontSize: 12.0,
-                          color: Colors.white70,
-                          height: 1.5,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24.0),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 32.0),
+                ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildButton({
+    required String text,
+    required VoidCallback onPressed,
+    required bool isPrimary,
+  }) {
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: isPrimary
+          ? BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0xFF2979ff).withOpacity(0.3),
+            blurRadius: 12,
+            offset: Offset(0, 6),
+          ),
+        ],
+      )
+          : null,
+      child: isPrimary
+          ? ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28.0),
+          ),
+          elevation: 0,
+          backgroundColor: Colors.white,
+        ),
+        child: Text(
+          text,
+          style: GoogleFonts.inter(
+            fontSize: 16.0,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1a237e),
+            letterSpacing: 0.5,
+          ),
+        ),
+      )
+          : OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          side: BorderSide(color: Colors.white.withOpacity(0.8), width: 2),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28.0),
+          ),
+        ),
+        child: Text(
+          text,
+          style: GoogleFonts.inter(
+            fontSize: 16.0,
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
       ),
     );
   }
