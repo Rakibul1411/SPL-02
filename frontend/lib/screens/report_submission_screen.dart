@@ -21,55 +21,94 @@ class ReportSubmissionScreen extends StatefulWidget {
 class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
   final _formKey = GlobalKey<FormState>();
   final _reportTextController = TextEditingController();
-  File? _selectedImage;
-  File? _selectedFile;
+  List<File> _selectedImages = [];
+  List<File> _selectedFiles = [];
   bool _isSubmitting = false;
 
   final ReportService _reportService = ReportService();
 
-  Future<void> _pickImage(ImageSource source) async {
+  // Function to pick multiple images
+  Future<void> _pickImages() async {
     try {
       final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(source: source);
+      final pickedFiles = await picker.pickMultiImage();
+
+      if (pickedFiles != null && pickedFiles.isNotEmpty) {
+        setState(() {
+          _selectedImages.addAll(pickedFiles.map((file) => File(file.path)));
+        });
+      }
+    } catch (e) {
+      _showErrorSnackBar('Error selecting images: $e');
+    }
+  }
+
+  // Function to take a photo with camera
+  Future<void> _takePhoto() async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.camera);
 
       if (pickedFile != null) {
         setState(() {
-          _selectedImage = File(pickedFile.path);
+          _selectedImages.add(File(pickedFile.path));
         });
       }
     } catch (e) {
-      _showErrorSnackBar('Error selecting image: $e');
+      _showErrorSnackBar('Error taking photo: $e');
     }
   }
 
-  Future<void> _pickFile() async {
+  // Function to pick multiple files
+  Future<void> _pickFiles() async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['pdf', 'doc', 'docx'],
+        allowedExtensions: ['pdf', 'doc', 'docx', 'xlsx', 'txt'],
+        allowMultiple: true,
       );
 
-      if (result != null) {
+      if (result != null && result.files.isNotEmpty) {
         setState(() {
-          _selectedFile = File(result.files.single.path!);
+          _selectedFiles.addAll(result.files.map((file) => File(file.path!)));
         });
       }
     } catch (e) {
-      _showErrorSnackBar('Error selecting file: $e');
+      _showErrorSnackBar('Error selecting files: $e');
     }
   }
 
+  // Function to delete an image
+  void _removeImage(int index) {
+    setState(() {
+      _selectedImages.removeAt(index);
+    });
+  }
+
+  // Function to delete a file
+  void _removeFile(int index) {
+    setState(() {
+      _selectedFiles.removeAt(index);
+    });
+  }
+
+  // Function to show error messages
   void _showErrorSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(
+          message,
+          style: TextStyle(fontWeight: FontWeight.w500),
+        ),
         backgroundColor: Colors.red.shade800,
         behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
     );
   }
 
+  // Function to submit the report
   Future<void> _submitReport() async {
     if (!_formKey.currentState!.validate()) return;
     if (!mounted) return;
@@ -79,17 +118,12 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
     });
 
     try {
-      String? fileUrl;
-      if (_selectedFile != null) {
-        fileUrl = await _reportService.uploadFile(_selectedFile!);
-      }
-
       await _reportService.submitReport(
         taskId: widget.taskId,
         workerId: widget.workerId,
         reportText: _reportTextController.text,
-        image: _selectedImage,
-        fileUrl: fileUrl,
+        images: _selectedImages,
+        files: _selectedFiles,
       );
 
       if (!mounted) return;
@@ -125,24 +159,32 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
     }
   }
 
+  // Function to show image picker options
   void _showImageSourceSelection() {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        padding: EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: Text(
-                'Select Image Source',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
@@ -151,72 +193,34 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Theme.of(context).primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  shape: BoxShape.circle,
                 ),
                 child: Icon(Icons.camera_alt, color: Theme.of(context).primaryColor),
               ),
-              title: const Text('Take Photo'),
+              title: Text('Take Photo', style: TextStyle(fontWeight: FontWeight.w500)),
               onTap: () {
                 Navigator.pop(context);
-                _pickImage(ImageSource.camera);
+                _takePhoto();
               },
             ),
+            Divider(),
             ListTile(
               leading: Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Theme.of(context).primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  shape: BoxShape.circle,
                 ),
                 child: Icon(Icons.photo_library, color: Theme.of(context).primaryColor),
               ),
-              title: const Text('Choose from Gallery'),
+              title: Text('Choose from Gallery', style: TextStyle(fontWeight: FontWeight.w500)),
               onTap: () {
                 Navigator.pop(context);
-                _pickImage(ImageSource.gallery);
+                _pickImages();
               },
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildAttachmentTile({
-    required String title,
-    required IconData icon,
-    required VoidCallback onTap,
-    String? subtitle,
-    bool isFile = false,
-  }) {
-    return Card(
-      elevation: 0,
-      margin: EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade300),
-      ),
-      child: ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, color: Theme.of(context).primaryColor),
-        ),
-        title: Text(title),
-        subtitle: subtitle != null ? Text(
-          subtitle,
-          style: TextStyle(fontSize: 12),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ) : null,
-        trailing: isFile && subtitle != null
-            ? Icon(Icons.check_circle, color: Colors.green)
-            : Icon(Icons.add_circle_outline),
-        onTap: onTap,
       ),
     );
   }
@@ -229,9 +233,21 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.primaryColor;
+
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text('Submit Report'),
+        title: Text(
+          'Submit Report',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
         elevation: 0,
         centerTitle: true,
       ),
@@ -240,178 +256,359 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
                 child: Form(
                   key: _formKey,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Report details section
-                      Text(
-                        'Report Details',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey.shade800,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      TextFormField(
-                        controller: _reportTextController,
-                        maxLines: 5,
-                        decoration: InputDecoration(
-                          hintText: 'Describe the situation or findings...',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Theme.of(context).primaryColor),
-                          ),
-                          contentPadding: EdgeInsets.all(16),
-                          filled: true,
-                          fillColor: Colors.grey.shade50,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter report details';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      SizedBox(height: 24),
-
-                      // Attachments section
-                      Text(
-                        'Attachments',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey.shade800,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-
-                      // Image section
-                      _selectedImage != null
-                          ? Card(
-                        elevation: 0,
-                        margin: EdgeInsets.only(bottom: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: Colors.grey.shade300),
-                        ),
+                      // Report details card
+                      _buildCard(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                              child: Image.file(
-                                _selectedImage!,
-                                height: 200,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
+                            Text(
+                              'Report Details',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Image Attached',
-                                    style: TextStyle(fontWeight: FontWeight.w500),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.delete_outline, color: Colors.red),
-                                    onPressed: () {
-                                      setState(() {
-                                        _selectedImage = null;
-                                      });
-                                    },
-                                  ),
-                                ],
+                            SizedBox(height: 16),
+                            TextFormField(
+                              controller: _reportTextController,
+                              maxLines: 6,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.black87,
                               ),
+                              decoration: InputDecoration(
+                                hintText: 'Describe the situation or findings in detail...',
+                                hintStyle: TextStyle(color: Colors.grey.shade500),
+                                filled: true,
+                                fillColor: Colors.grey.shade100,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: EdgeInsets.all(16),
+                              ),
+                              validator: (value) => value!.isEmpty ? 'Please enter report details' : null,
                             ),
                           ],
                         ),
-                      )
-                          : _buildAttachmentTile(
-                        title: 'Add Photo Evidence',
-                        icon: Icons.add_a_photo,
-                        onTap: _showImageSourceSelection,
                       ),
 
-                      // File section
-                      _buildAttachmentTile(
-                        title: 'Add Document',
-                        subtitle: _selectedFile != null
-                            ? _selectedFile!.path.split('/').last
-                            : 'PDF, Word documents (optional)',
-                        icon: Icons.attach_file,
-                        onTap: _pickFile,
-                        isFile: _selectedFile != null,
+                      // Images card
+                      _buildCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Images',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                if (_selectedImages.length < 10)
+                                  TextButton(
+                                    onPressed: _showImageSourceSelection,
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: primaryColor,
+                                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.add, size: 18),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Add Image',
+                                          style: TextStyle(fontWeight: FontWeight.w500),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            SizedBox(height: 16),
+
+                            // Images grid view
+                            if (_selectedImages.isEmpty)
+                              Container(
+                                width: double.infinity,
+                                padding: EdgeInsets.symmetric(vertical: 32),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.grey.shade200),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.image_outlined,
+                                      size: 40,
+                                      color: Colors.grey.shade400,
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'No images attached',
+                                      style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _showImageSourceSelection,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: primaryColor,
+                                        foregroundColor: Colors.white,
+                                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        elevation: 0,
+                                      ),
+                                      child: Text('Add Image'),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              GridView.builder(
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                  crossAxisSpacing: 8,
+                                  mainAxisSpacing: 8,
+                                ),
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: _selectedImages.length,
+                                itemBuilder: (context, index) {
+                                  return Stack(
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(8),
+                                          image: DecorationImage(
+                                            image: FileImage(_selectedImages[index]),
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 4,
+                                        right: 4,
+                                        child: GestureDetector(
+                                          onTap: () => _removeImage(index),
+                                          child: Container(
+                                            padding: EdgeInsets.all(4),
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withOpacity(0.7),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              Icons.close,
+                                              color: Colors.white,
+                                              size: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                          ],
+                        ),
                       ),
 
-                      SizedBox(height: 32),
+                      // Files card
+                      _buildCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Documents',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                if (_selectedFiles.length < 10)
+                                  TextButton(
+                                    onPressed: _pickFiles,
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: primaryColor,
+                                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.add, size: 18),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Add File',
+                                          style: TextStyle(fontWeight: FontWeight.w500),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            SizedBox(height: 16),
+
+                            // Files list
+                            if (_selectedFiles.isEmpty)
+                              Container(
+                                width: double.infinity,
+                                padding: EdgeInsets.symmetric(vertical: 32),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.grey.shade200),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.description_outlined,
+                                      size: 40,
+                                      color: Colors.grey.shade400,
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'No documents attached',
+                                      style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _pickFiles,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: primaryColor,
+                                        foregroundColor: Colors.white,
+                                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        elevation: 0,
+                                      ),
+                                      child: Text('Add Document'),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              ListView.separated(
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: _selectedFiles.length,
+                                separatorBuilder: (context, index) => Divider(height: 1),
+                                itemBuilder: (context, index) {
+                                  final fileName = _selectedFiles[index].path.split('/').last;
+                                  final fileExtension = fileName.split('.').last.toLowerCase();
+
+                                  return ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    leading: Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: _getFileIconColor(fileExtension).withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          _getFileIcon(fileExtension),
+                                          color: _getFileIconColor(fileExtension),
+                                          size: 24,
+                                        ),
+                                      ),
+                                    ),
+                                    title: Text(
+                                      fileName,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 14,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    subtitle: Text(
+                                      _getFileSize(_selectedFiles[index]),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                    trailing: IconButton(
+                                      icon: Icon(Icons.delete_outline, color: Colors.grey.shade700),
+                                      onPressed: () => _removeFile(index),
+                                    ),
+                                  );
+                                },
+                              ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
             ),
 
-            // Fixed Submit Button at bottom
+            // Submit button container
             Container(
+              width: double.infinity,
+              color: Colors.white,
               padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    spreadRadius: 1,
-                    blurRadius: 5,
-                    offset: Offset(0, -3),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                top: false,
-                child: Container(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _isSubmitting ? null : _submitReport,
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      backgroundColor: Colors.blue.shade700,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey.shade400,
-                      elevation: 0,
+              child: Container(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _isSubmitting ? null : _submitReport,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    disabledBackgroundColor: primaryColor.withOpacity(0.5),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: _isSubmitting
-                        ? SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                        : Text(
-                      'SUBMIT REPORT',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        letterSpacing: 1,
-                      ),
+                  ),
+                  child: _isSubmitting
+                      ? SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                      : Text(
+                    'Submit Report',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ),
@@ -421,5 +618,72 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildCard({required Widget child}) {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  IconData _getFileIcon(String extension) {
+    switch (extension) {
+      case 'pdf':
+        return Icons.picture_as_pdf;
+      case 'doc':
+      case 'docx':
+        return Icons.article;
+      case 'xlsx':
+        return Icons.table_chart;
+      case 'txt':
+        return Icons.text_snippet;
+      default:
+        return Icons.insert_drive_file;
+    }
+  }
+
+  Color _getFileIconColor(String extension) {
+    switch (extension) {
+      case 'pdf':
+        return Colors.red.shade700;
+      case 'doc':
+      case 'docx':
+        return Colors.blue.shade700;
+      case 'xlsx':
+        return Colors.green.shade700;
+      case 'txt':
+        return Colors.orange.shade700;
+      default:
+        return Colors.grey.shade700;
+    }
+  }
+
+  String _getFileSize(File file) {
+    try {
+      final bytes = file.lengthSync();
+      if (bytes < 1024) {
+        return '$bytes B';
+      } else if (bytes < 1024 * 1024) {
+        return '${(bytes / 1024).toStringAsFixed(1)} KB';
+      } else {
+        return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+      }
+    } catch (e) {
+      return 'Unknown size';
+    }
   }
 }

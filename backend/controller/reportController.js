@@ -2,7 +2,7 @@ import Report from '../models/reportTable.js';
 
 export const submitReport = async (req, res) => {
   try {
-    const { taskId, workerId, reportText, fileUrl } = req.body;
+    const { taskId, workerId, reportText } = req.body;
 
     if (!taskId || !workerId || !reportText) {
       return res.status(400).json({
@@ -11,15 +11,22 @@ export const submitReport = async (req, res) => {
       });
     }
 
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    // Extract uploaded file URLs
+    const imageUrls = req.files['images']
+      ? req.files['images'].map(file => `/uploads/${file.filename}`)
+      : [];
+
+    const fileUrls = req.files['files']
+      ? req.files['files'].map(file => `/uploads/${file.filename}`)
+      : [];
 
     const newReport = new Report({
       reportId: `${Date.now()}`,
       taskId,
       workerId,
       reportText,
-      imageUrl,
-      fileUrl, // Include fileUrl in the report
+      imageUrls,
+      fileUrls,
     });
 
     await newReport.save();
@@ -27,15 +34,7 @@ export const submitReport = async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Report submitted successfully',
-      report: {
-        reportId: newReport.reportId,
-        taskId: newReport.taskId,
-        workerId: newReport.workerId,
-        reportText: newReport.reportText,
-        imageUrl: newReport.imageUrl || '', // Ensure imageUrl is never null
-        fileUrl: newReport.fileUrl || '', // Ensure fileUrl is never null
-        submittedAt: newReport.submittedAt.toISOString(),
-      },
+      report: newReport,
     });
   } catch (error) {
     console.error('Error in submitReport:', error);

@@ -5,17 +5,12 @@ const ReportSchema = new mongoose.Schema({
   taskId: { type: String, required: true },
   workerId: { type: String, required: true },
   reportText: { type: String, required: true },
-  imageUrl: { type: String, required: false },
-  fileUrl: { type: String, required: false },
+  imageUrls: [{ type: String, required: false }], // Store multiple image URLs
+  fileUrls: [{ type: String, required: false }], // Store multiple file URLs
   submittedAt: { type: Date, default: Date.now },
   reportRating: { type: Number, default: null },
 });
 
 const Report = mongoose.model('Report', ReportSchema);
 
-// Export the model
 export default Report;
-
-
-
-
