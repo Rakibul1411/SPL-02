@@ -4,6 +4,8 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import http from "http";
+import { initSocket } from "./socket/socket.js"; // Import WebSocket function
 
 // import homeRoute from './routes/home.js';
 import authRoute from './routes/auth.js';
@@ -13,9 +15,9 @@ import reportRoute from './routes/report.js';
 import dotenv from 'dotenv';
 
 // Task Assignment_test
-import { createServer } from "http";
-import { initSocket } from "./socket/socket.js";
-import taskRouteTest from './routes/taskRoute_test.js';
+//import { createServer } from "http";
+//import { initSocket } from "./socket/socket.js";
+//import taskRouteTest from './routes/taskRoute_test.js';
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -24,8 +26,9 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app); // Create an HTTP server for WebSocket
 // Task Assignment_test
-const server = createServer(app);
+//const server = createServer(app);
 
 // 🔥 CORS configuration goes here (BEFORE routes)
 app.use(cors({
@@ -57,7 +60,7 @@ mongoose.connect(process.env.MONGO_URI, {
     app.use('/report', reportRoute);
 
     // Task Assignment_test
-    app.use("/task_test", taskRouteTest);
+//    app.use("/task_test", taskRouteTest);
 
     // Start server
     const PORT = process.env.PORT || 3005;

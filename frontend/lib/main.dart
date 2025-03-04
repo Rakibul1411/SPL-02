@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: TaskListScreenTest(userId: '1'),
+      home: LaunchScreen(),
       // home: const ReportSubmissionScreen(taskId: '1', workerId: '1',),
       debugShowCheckedModeBanner: false, // Or your home screen
     );

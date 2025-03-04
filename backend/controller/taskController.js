@@ -1,10 +1,10 @@
 import Task from '../models/taskTable.js';
+import { sendNotification } from "../socket/socket.js"; // Import WebSocket function
 
 // Fetch all tasks
 export const getAllTasks = async (req, res) => {
   try {
     const tasks = await Task.find();
-    //console.log('Fetched tasks:', tasks);
     res.status(200).json(tasks);
   } catch (err) {
     console.error('Error fetching tasks:', err);
@@ -21,13 +21,23 @@ export const createTask = async (req, res) => {
       });
     }
 
-    // Validate the deadline field
-    if (req.body.deadline && isNaN(Date.parse(req.body.deadline))) {
+    // Validate and convert deadline
+    const deadline = req.body.deadline ? new Date(req.body.deadline) : null;
+    if (deadline && isNaN(deadline.getTime())) {
       return res.status(400).json({ error: 'Invalid deadline format' });
     }
 
-    const newTask = new Task(req.body);
+    // Create new task
+    const newTask = new Task({ ...req.body, deadline }); // Use spread operator for cleaner code
     await newTask.save();
+
+    // Send real-time notification to all gig workers
+    sendNotification({
+      title: "New Task Available",
+      message: `Task: ${newTask.title} is available!`,
+      taskId: newTask._id
+    });
+
     res.status(201).json({ message: 'Task created successfully', task: newTask });
   } catch (err) {
     console.error('Error creating task:', err);
@@ -40,18 +50,18 @@ export const createTask = async (req, res) => {
 
 // Update a task
 export const updateTask = async (req, res) => {
-  const { id } = req.params; // Extract the task ID from the URL
+  const { id } = req.params;
   const { title, description, location, incentive, deadline, status } = req.body;
 
   try {
-    // Validate the deadline field
-    if (deadline && isNaN(Date.parse(deadline))) {
+    const convertedDeadline = deadline ? new Date(deadline) : null;
+    if (convertedDeadline && isNaN(convertedDeadline.getTime())) {
       return res.status(400).json({ error: 'Invalid deadline format' });
     }
 
     const updatedTask = await Task.findByIdAndUpdate(
       id,
-      { title, description, location, incentive, deadline, status },
+      { title, description, location, incentive, deadline: convertedDeadline, status },
       { new: true } // Return the updated task
     );
 
@@ -68,14 +78,12 @@ export const updateTask = async (req, res) => {
 
 // Delete a task
 export const deleteTask = async (req, res) => {
-  const { id } = req.params; // Extract the task ID from the URL
+  const { id } = req.params;
 
-  console.log('your task id is:', id);
+  console.log('Deleting task with ID:', id);
 
   try {
     const deletedTask = await Task.findByIdAndDelete(id);
-
-    console.log(deletedTask);
 
     if (!deletedTask) {
       return res.status(404).json({ message: 'Task not found' });

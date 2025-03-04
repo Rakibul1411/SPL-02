@@ -3,7 +3,6 @@ import {
   registration,
   verifyRegistrationOTP,
   login,
-  verifyLoginOTP,
   resendOTP,
   sendOtpForPasswordReset,
   verifyPasswordResetOTP,
@@ -18,7 +17,7 @@ router.post('/verify-registration-otp', verifyRegistrationOTP);
 
 // Login routes
 router.post('/login', login);
-router.post('/verify-login-otp', verifyLoginOTP);
+//router.post('/verify-login-otp', verifyLoginOTP);
 
 // Resend OTP
 router.post('/resend-otp', resendOTP);

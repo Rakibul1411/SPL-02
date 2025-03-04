@@ -6,17 +6,16 @@ export const initSocket = (server) => {
   io = new Server(server, { cors: { origin: "*" } });
 
   io.on("connection", (socket) => {
-    console.log("🔌 New client connected");
-
-    socket.on("assignTask", (task) => {
-      console.log("📌 New Task Assigned:", task);
-      io.emit("newTask", task); // Broadcast task to all clients
-    });
+    console.log("🔌 New gig worker connected:", socket.id);
 
     socket.on("disconnect", () => {
-      console.log("❌ Client disconnected");
+      console.log("❌ Gig worker disconnected");
     });
   });
 };
 
-export { io };
+// Function to send notifications to all gig workers
+export const sendNotification = (message) => {
+  io.emit("newTask", message); // Send notification to all connected gig workers
+  console.log("Task Notification Sent!!!");
+};

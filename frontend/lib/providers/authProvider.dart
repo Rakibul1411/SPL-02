@@ -55,6 +55,7 @@ class AuthProvider {
   }
 
   // Login User
+  // ✅ Login Without OTP
   Future<Map<String, dynamic>> loginUser(String email, String password) async {
     final url = Uri.parse('$baseUrl/auth/login/');
     try {
@@ -63,7 +64,7 @@ class AuthProvider {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
-          'password': password.isEmpty ? 'dummy' : password,
+          'password': password,
         }),
       );
 
@@ -77,7 +78,6 @@ class AuthProvider {
       throw Exception('Failed to login user: $error');
     }
   }
-
 
   // Verify Login OTP
   Future<Map<String, dynamic>> verifyLoginOTP(

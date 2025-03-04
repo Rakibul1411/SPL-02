@@ -24,6 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   final AuthProvider _authProvider = AuthProvider();
 
+  // ✅ Handle Login (No OTP Required)
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
@@ -33,27 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
           _passwordController.text,
         );
 
-        print(response['role']);
-
-        if (response['requiresOTP'] == true) {
-          final role = response['role'];
-          final verifiedRole = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => OTPScreen(
-                email: _emailController.text,
-                isRegistration: false,
-                role: role,
-              ),
-            ),
-          );
-
-          if (verifiedRole != null) {
-            _handleUserRole(verifiedRole);
-          }
-        } else {
-          _handleUserRole(response['user']['role']);
-        }
+        _handleUserRole(response['user']['role']); // ✅ Direct login
       } catch (error) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Login failed: $error')),
