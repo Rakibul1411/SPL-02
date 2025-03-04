@@ -31,3 +31,29 @@ export const sendOTP = async (email, otp) => {
     throw new Error('Failed to send OTP');
   }
 };
+
+// 📌 ✅ Function to send task email notification
+export const sendTaskEmailNotification = async (emails, task) => {
+  try {
+    const mailOptions = {
+      from: process.env.SMTP_MAIL,
+      to: emails, // Send to all gig workers
+      subject: `New Task Available: ${task.title}`,
+      html: `
+        <h2>New Task Available</h2>
+        <p><strong>Title:</strong> ${task.title}</p>
+        <p><strong>Description:</strong> ${task.description}</p>
+        <p><strong>Location:</strong> ${task.location}</p>
+        <p><strong>Incentive:</strong> $${task.incentive.toFixed(2)}</p>
+        <p><strong>Deadline:</strong> ${task.deadline ? task.deadline.toISOString().split("T")[0] : "No deadline"}</p>
+        <br/>
+        <p>Check the app for more details.</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("📧 Task notification email sent to gig workers!");
+  } catch (error) {
+        console.error("Failed to send task email notification:", error);
+      }
+    };

@@ -1,5 +1,7 @@
-import Task from '../models/taskTable.js';
+import Task from "../models/taskTable.js";
+import User from "../models/userTable.js"; // Import User model to get gig workers
 import { sendNotification } from "../socket/socket.js"; // Import WebSocket function
+import { sendTaskEmailNotification } from "../utils/emailSender.js"; // Import email function
 
 // Fetch all tasks
 export const getAllTasks = async (req, res) => {
@@ -7,7 +9,7 @@ export const getAllTasks = async (req, res) => {
     const tasks = await Task.find();
     res.status(200).json(tasks);
   } catch (err) {
-    console.error('Error fetching tasks:', err);
+    console.error("Error fetching tasks:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -16,33 +18,42 @@ export const getAllTasks = async (req, res) => {
 export const createTask = async (req, res) => {
   try {
     if (!req.body || Object.keys(req.body).length === 0) {
-      return res.status(400).json({
-        error: 'Empty request body',
-      });
+      return res.status(400).json({ error: "Empty request body" });
     }
 
     // Validate and convert deadline
     const deadline = req.body.deadline ? new Date(req.body.deadline) : null;
     if (deadline && isNaN(deadline.getTime())) {
-      return res.status(400).json({ error: 'Invalid deadline format' });
+      return res.status(400).json({ error: "Invalid deadline format" });
     }
 
     // Create new task
-    const newTask = new Task({ ...req.body, deadline }); // Use spread operator for cleaner code
+    const newTask = new Task({ ...req.body, deadline });
     await newTask.save();
+
+    // Fetch all gig workers from the database
+    const gigWorkers = await User.find({ role: "Gig Worker" });
+
+    if (gigWorkers.length > 0) {
+      // Extract emails of all gig workers
+      const gigWorkerEmails = gigWorkers.map((worker) => worker.email);
+
+      // Send email to all gig workers
+      await sendTaskEmailNotification(gigWorkerEmails, newTask);
+    }
 
     // Send real-time notification to all gig workers
     sendNotification({
       title: "New Task Available",
       message: `Task: ${newTask.title} is available!`,
-      taskId: newTask._id
+      taskId: newTask._id,
     });
 
-    res.status(201).json({ message: 'Task created successfully', task: newTask });
+    res.status(201).json({ message: "Task created successfully", task: newTask });
   } catch (err) {
-    console.error('Error creating task:', err);
+    console.error("Error creating task:", err);
     res.status(500).json({
-      error: 'Failed to create task',
+      error: "Failed to create task",
       details: err.message,
     });
   }

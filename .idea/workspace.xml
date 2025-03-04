@@ -4,7 +4,14 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fa330943-11eb-4a69-b8c9-147eb9adb4e4" name="Changes" comment="" />
+    <list default="true" id="fa330943-11eb-4a69-b8c9-147eb9adb4e4" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/backend/controller/taskController.js" beforeDir="false" afterPath="$PROJECT_DIR$/backend/controller/taskController.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/utils/emailSender.js" beforeDir="false" afterPath="$PROJECT_DIR$/backend/utils/emailSender.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/android/app/.cxx/Debug/5uc6wly2/arm64-v8a/configure_fingerprint.bin" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/android/app/.cxx/Debug/5uc6wly2/arm64-v8a/configure_fingerprint.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/android/app/.cxx/Debug/5uc6wly2/armeabi-v7a/configure_fingerprint.bin" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/android/app/.cxx/Debug/5uc6wly2/armeabi-v7a/configure_fingerprint.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/android/app/.cxx/Debug/5uc6wly2/x86/configure_fingerprint.bin" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/android/app/.cxx/Debug/5uc6wly2/x86/configure_fingerprint.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/android/app/.cxx/Debug/5uc6wly2/x86_64/configure_fingerprint.bin" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/android/app/.cxx/Debug/5uc6wly2/x86_64/configure_fingerprint.bin" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
