@@ -228,11 +228,6 @@ export const resetPassword = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if OTP matches and is not expired
-//    if (user.otp !== otp || user.otpExpires < new Date()) {
-//      return res.status(400).json({ message: 'Invalid or expired OTP' });
-//    }
-
     // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
@@ -247,4 +242,40 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({ error: 'Failed to reset password', details: error.message });
   }
 };
+
+// Add this to your authController.js
+export const updatePassword = async (req, res) => {
+  const { email, currentPassword, newPassword } = req.body;
+
+  console.log(newPassword);
+
+  try {
+    // Find the user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if current password matches
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+
+    // Hash the new password and update
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+
+    await user.save();
+
+    console.log('Password updated successfully')
+
+    res.status(200).json({ message: 'Password updated successfully' });
+    console.log('Password updated successfully');
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update password', details: error.message });
+  }
+};
+
+
 

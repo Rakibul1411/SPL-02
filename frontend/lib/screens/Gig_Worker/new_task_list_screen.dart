@@ -8,14 +8,14 @@ import 'task_details_screen.dart';
 import 'AcceptedTaskScreen.dart'; // Import the Accepted Task Screen
 import 'RejectedTaskScreen.dart'; // Import the Rejected Task Screen
 
-class GigWorkerTaskListScreen extends ConsumerStatefulWidget {
-  const GigWorkerTaskListScreen({super.key});
+class NewTaskListScreen extends ConsumerStatefulWidget {
+  const NewTaskListScreen({super.key});
 
   @override
-  ConsumerState<GigWorkerTaskListScreen> createState() => _GigWorkerTaskListScreenState();
+  ConsumerState<NewTaskListScreen> createState() => _GigWorkerTaskListScreenState();
 }
 
-class _GigWorkerTaskListScreenState extends ConsumerState<GigWorkerTaskListScreen> {
+class _GigWorkerTaskListScreenState extends ConsumerState<NewTaskListScreen> {
   Timer? _timer; // Timer for live countdown
 
   @override

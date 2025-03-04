@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/forgot_password_provider.dart'; // Import the provider
+import '../../providers/forgot_password_provider.dart'; // Import the provider
 
 class ResetPasswordScreen extends ConsumerWidget {
   final String email;

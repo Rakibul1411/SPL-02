@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'login_screen.dart';
-import 'registration_screen.dart';
+import '../Authentication/login_screen.dart';
+import '../Authentication/registration_screen.dart';
 
 class LaunchScreen extends StatefulWidget {
   const LaunchScreen({super.key});

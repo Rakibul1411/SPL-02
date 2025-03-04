@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/forgot_password_provider.dart'; // Import the ForgotPasswordProvider
-import 'otp_screen.dart'; // Import OTP screen for password reset flow
+import '../../providers/forgot_password_provider.dart'; // Import the ForgotPasswordProvider
+import '../OTP/otp_screen.dart'; // Import OTP screen for password reset flow
 
 class ForgotPasswordScreen extends ConsumerWidget {
   const ForgotPasswordScreen({super.key});

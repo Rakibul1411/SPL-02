@@ -91,9 +91,6 @@ class AuthProvider {
         body: jsonEncode({'email': email, 'otp': otp}),
       );
 
-      print('Verify Login OTP: ');
-      print(response.body);
-
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {

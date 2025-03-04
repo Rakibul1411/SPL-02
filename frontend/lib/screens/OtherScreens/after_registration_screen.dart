@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
+import '../Authentication/login_screen.dart';
 import 'launch_page_screen.dart';
 
 class AfterRegistrationScreen extends StatelessWidget {

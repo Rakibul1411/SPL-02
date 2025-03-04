@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart' as provider;
-import '../profile_details_screen.dart';
+import '../Profile/profile_details_screen.dart';
 import 'create_task_screen.dart';
 import 'task_list_screen.dart';
 import '../../providers/profile_provider.dart';

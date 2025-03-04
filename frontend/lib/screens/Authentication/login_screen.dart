@@ -1,13 +1,13 @@
-import 'package:frontend/screens/registration_screen.dart';
+import 'package:frontend/screens/Authentication/registration_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../providers/authProvider.dart';
-import './Gig_Worker/gig_worker_screen.dart';
-import './Company/company_screen.dart';
-import './Shop Manager/shop_manager_screen.dart';
-import 'ForgotPasswordScreen.dart';
-import 'otp_screen.dart';
+import '../../providers/authProvider.dart';
+import '../Gig_Worker/gig_worker_screen.dart';
+import '../Company/company_screen.dart';
+import '../Shop Manager/shop_manager_screen.dart';
+import '../ResetAndUpdatePassword/ForgotPasswordScreen.dart';
+import '../OTP/otp_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

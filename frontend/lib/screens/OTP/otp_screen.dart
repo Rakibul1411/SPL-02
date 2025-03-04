@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../providers/authProvider.dart';
-import '../providers/forgot_password_provider.dart'; // Import forgot password provider
-import 'ResetPasswordScreen.dart';
-import 'after_registration_screen.dart'; // Assuming you need to show a confirmation screen or redirect
+import '../../providers/authProvider.dart';
+import '../../providers/forgot_password_provider.dart'; // Import forgot password provider
+import '../ResetAndUpdatePassword/ResetPasswordScreen.dart';
+import '../OtherScreens/after_registration_screen.dart'; // Assuming you need to show a confirmation screen or redirect
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
 
 class OTPScreen extends ConsumerStatefulWidget {

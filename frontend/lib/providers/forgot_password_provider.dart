@@ -98,6 +98,35 @@ class ForgotPasswordProvider extends StateNotifier<ForgotPasswordState> {
       state = state.copyWith(errorMessage: 'Failed to reset password: $error');
     }
   }
+
+  // Method to update the password (new method for password update)
+  Future<void> updatePassword(String email, String currentPassword, String newPassword) async {
+    final url = Uri.parse('$baseUrl/auth/update-password');
+    try {
+      print("Email received in updatePassword: $email");
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'currentPassword': currentPassword,
+          'newPassword': newPassword,
+        }),
+      );
+
+      print("email is: $email");
+
+      if (response.statusCode == 200) {
+        state = state.copyWith(errorMessage: null);
+      } else {
+        final responseBody = jsonDecode(response.body);
+        state = state.copyWith(errorMessage: responseBody['message'] ?? 'Failed to update password');
+      }
+    } catch (error) {
+      state = state.copyWith(errorMessage: 'Failed to update password: $error');
+    }
+  }
+
 }
 
 // Create the StateNotifierProvider for the ForgotPasswordProvider

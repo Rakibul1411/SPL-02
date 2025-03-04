@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/screens/Company/CompanyHomeScreen.dart';
 import 'package:frontend/screens/Company/company_screen.dart';
 import 'package:frontend/screens/Company/task_list_screen.dart';
 import 'package:frontend/screens/Gig_Worker/gig_worker_screen.dart';
+import 'package:frontend/screens/Profile/UpdatePasswordScreen.dart';
 import 'package:frontend/screens/Shop%20Manager/profile_details_screen.dart';
 import 'package:frontend/screens/Shop%20Manager/shop_manager_screen.dart';
-import 'package:frontend/screens/after_registration_screen.dart';
-import 'package:frontend/screens/launch_page_screen.dart';
-import 'package:frontend/screens/login_screen.dart';
-import 'package:frontend/screens/registration_screen.dart';
+import 'package:frontend/screens/OtherScreens/after_registration_screen.dart';
+import 'package:frontend/screens/OtherScreens/launch_page_screen.dart';
+import 'package:frontend/screens/Authentication/login_screen.dart';
+import 'package:frontend/screens/Map/map_screen.dart';
+import 'package:frontend/screens/Authentication/registration_screen.dart';
 import 'package:frontend/screens/report_submission_screen.dart';
 // Adjust the import path as needed
 
@@ -30,7 +33,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const GigWorkerScreen(userEmail: 'mdrakibul11611@gmail.com'),
+      home: const GigWorkerScreen(userEmail: 'mdrakibul11611@gmail.com',),
       debugShowCheckedModeBanner: false, // Or your home screen
     );
   }

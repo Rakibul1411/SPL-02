@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../providers/authProvider.dart';
+import '../../providers/authProvider.dart';
 import 'login_screen.dart';
-import 'otp_screen.dart';
-import 'map_screen.dart';
+import '../OTP/otp_screen.dart';
+import '../Map/map_screen.dart';
 import 'package:latlong2/latlong.dart';  // Import LatLng
 
 class RegistrationScreen extends StatefulWidget {
