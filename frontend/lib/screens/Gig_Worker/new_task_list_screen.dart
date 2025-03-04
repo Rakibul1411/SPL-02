@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/task_model.dart';
 import '../../providers/task_provider.dart';
 import 'task_details_screen.dart';
+import 'AcceptedTaskScreen.dart'; // Import the Accepted Task Screen
+import 'RejectedTaskScreen.dart'; // Import the Rejected Task Screen
 
 class GigWorkerTaskListScreen extends ConsumerStatefulWidget {
   const GigWorkerTaskListScreen({super.key});
@@ -259,6 +261,65 @@ class _GigWorkerTaskListScreenState extends ConsumerState<GigWorkerTaskListScree
                             fontWeight: taskStatus == 'Deadline Over'
                                 ? FontWeight.bold
                                 : FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Accept and Reject Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              // Redirect to Accepted Task Screen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AcceptedTaskScreen(task: task),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Text(
+                              'Accept',
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              // Redirect to Rejected Task Screen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => RejectedTaskScreen(task: task),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Text(
+                              'Reject',
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                         ),
                       ],
