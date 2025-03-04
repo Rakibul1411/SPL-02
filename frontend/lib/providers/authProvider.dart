@@ -2,11 +2,11 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class AuthProvider {
-  final String baseUrl = 'http://localhost:3005'; // Replace with your backend URL
+  final String baseUrl = 'http://192.168.0.101:3005'; // Replace with your backend URL
 
   // Register User
   Future<Map<String, dynamic>> registerUser(
-      String name, String email, String password, String role) async {
+      String name, String email, String password, String role, double latitude, double longitude) async {
     final url = Uri.parse('$baseUrl/auth/registration/');
     try {
       final response = await http.post(
@@ -17,6 +17,8 @@ class AuthProvider {
           'email': email,
           'password': password.isEmpty ? 'dummy' : password,
           'role': role.isEmpty ? 'dummy' : role,
+          'latitude': latitude,
+          'longitude': longitude,
         }),
       );
 
@@ -30,7 +32,6 @@ class AuthProvider {
       throw Exception('Failed to register user: $error');
     }
   }
-
 
   // Verify Registration OTP
   Future<Map<String, dynamic>> verifyRegistrationOTP(
@@ -119,6 +120,13 @@ class AuthProvider {
     } catch (error) {
       throw Exception('Failed to resend OTP: $error');
     }
+  }
+
+  Future<void> logout() async {
+    // Perform logout logic (e.g., clear tokens, session data, etc.)
+    // Example:
+    // await clearToken(); // Clear any stored tokens
+    // await clearUserData(); // Clear user data from local storage
   }
 
 }

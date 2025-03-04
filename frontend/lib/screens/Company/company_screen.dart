@@ -1,28 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart' as provider;
+import '../profile_details_screen.dart';
 import 'create_task_screen.dart';
 import 'task_list_screen.dart';
+import '../../providers/profile_provider.dart';
+import '../../providers/authProvider.dart';
 
 class CompanyScreen extends ConsumerStatefulWidget {
-  const CompanyScreen({super.key});
+  final String userEmail;
+
+  const CompanyScreen({super.key, required this.userEmail});
 
   @override
   _CompanyScreenState createState() => _CompanyScreenState();
 }
 
 class _CompanyScreenState extends ConsumerState<CompanyScreen> {
-  int _selectedIndex = 0; // Index for selected sidebar item
-  bool _isSidebarExpanded = false; // Sidebar expanded state
+  int _selectedIndex = 0;
+  bool _isSidebarExpanded = false;
+  String _companyName = "";
+  bool _isLoading = true;
 
-  final List<Widget> _screens = [
-    const CreateTaskScreen(), // Create Task Screen
-    const TaskListScreen(), // All Tasks Screen
-    const Center(child: Text('Gig Worker Report List')), // Placeholder for Gig Worker Report
-    const Center(child: Text('Company Details')), // Placeholder for Company Details
-    const Center(child: Text('Settings')), // Placeholder for Settings
-  ];
+  late final List<Widget> _screens;
+  late final ProfileProvider _profileProvider;
 
-  final List<String> _appBarTitles = [
+  // Create a GlobalKey for the Scaffold to control the Drawer
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  final List<String> _screenTitles = [
     'Create Task',
     'All Tasks',
     'Gig Worker Report List',
@@ -30,118 +36,169 @@ class _CompanyScreenState extends ConsumerState<CompanyScreen> {
     'Settings',
   ];
 
-  void _logout(BuildContext context) {
-    Navigator.pushReplacementNamed(context, '/login');
+  @override
+  void initState() {
+    super.initState();
+    _profileProvider = ProfileProvider();
+    _screens = [
+      const CreateTaskScreen(),
+      const TaskListScreen(),
+      const Center(child: Text('Gig Worker Report List')),
+      provider.ChangeNotifierProvider.value(
+        value: _profileProvider,
+        child: DashboardScreen(userEmail: widget.userEmail),
+      ),
+      const Center(child: Text('Settings')),
+    ];
+    _fetchCompanyDetails();
   }
 
-  void _toggleSidebar() {
+  Future<void> _fetchCompanyDetails() async {
     setState(() {
-      _isSidebarExpanded = !_isSidebarExpanded;
+      _isLoading = true;
     });
+
+    try {
+      await _profileProvider.fetchUserProfile(widget.userEmail);
+      setState(() {
+        _companyName = _profileProvider.name ?? "Company Name";
+        _isLoading = false;
+      });
+    } catch (error) {
+      print('Error fetching company details: $error');
+      setState(() {
+        _companyName = "Company Name";
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _logout(BuildContext context) async {
+    final authProvider = AuthProvider();
+    try {
+      await authProvider.logout();
+      Navigator.pushReplacementNamed(context, '/login');
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Logout failed: $error')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,  // Assign the ScaffoldKey here
       appBar: AppBar(
-        title: Text(_appBarTitles[_selectedIndex]),
+        title: Text(_screenTitles[_selectedIndex]),
+        centerTitle: true,
         backgroundColor: Colors.blue,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: const Text('Notifications'),
-                    content: const Text('You have no new notifications.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('OK'),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context),
-          ),
-        ],
+        elevation: 2,
+        leading: IconButton(
+          icon: Icon(Icons.menu), // Left-side hamburger icon
+          onPressed: () {
+            _scaffoldKey.currentState?.openDrawer(); // Open the drawer
+          },
+        ),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            UserAccountsDrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              accountName: _isLoading
+                  ? const CircularProgressIndicator(
+                color: Colors.white,
+              )
+                  : Text(
+                _companyName,
+                style: TextStyle(fontSize: 20, color: Colors.white),
+              ),
+              accountEmail: Text(widget.userEmail),
+              currentAccountPicture: CircleAvatar(
+                backgroundColor: Colors.white,
+                child: const Icon(
+                  Icons.business,
+                  color: Colors.blue,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.add_task_outlined),
+              title: Text('Create Task'),
+              onTap: () {
+                setState(() {
+                  _selectedIndex = 0;
+                  _isSidebarExpanded = false;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.task_outlined),
+              title: Text('All Tasks'),
+              onTap: () {
+                setState(() {
+                  _selectedIndex = 1;
+                  _isSidebarExpanded = false;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.report_outlined),
+              title: Text('Gig Worker Report'),
+              onTap: () {
+                setState(() {
+                  _selectedIndex = 2;
+                  _isSidebarExpanded = false;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.info_outline),
+              title: Text('Company Details'),
+              onTap: () {
+                setState(() {
+                  _selectedIndex = 3;
+                  _isSidebarExpanded = false;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.settings_outlined),
+              title: Text('Settings'),
+              onTap: () {
+                setState(() {
+                  _selectedIndex = 4;
+                  _isSidebarExpanded = false;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.logout),
+              title: Text('Logout'),
+              onTap: () {
+                _logout(context);
+              },
+            ),
+          ],
+        ),
       ),
       body: Row(
         children: [
-          NavigationRail(
-            extended: _isSidebarExpanded,
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (index) {
-              if (index == 5) {
-                _logout(context); // Logout button
-                return;
-              }
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-            leading: Column(
-              children: [
-                IconButton(
-                  icon: Icon(
-                    _isSidebarExpanded ? Icons.arrow_back : Icons.menu,
-                  ),
-                  onPressed: _toggleSidebar,
-                ),
-                const SizedBox(height: 10),
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.blue.withOpacity(0.1),
-                  child: const Icon(Icons.business, color: Colors.blue),
-                ),
-              ],
-            ),
-            labelType: _isSidebarExpanded
-                ? NavigationRailLabelType.none
-                : NavigationRailLabelType.all,
-            destinations: const [
-              NavigationRailDestination(
-                icon: Icon(Icons.add_task_outlined),
-                selectedIcon: Icon(Icons.add_task),
-                label: Text('Create Task'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.task_outlined),
-                selectedIcon: Icon(Icons.task),
-                label: Text('All Tasks'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.report_outlined),
-                selectedIcon: Icon(Icons.report),
-                label: Text('Gig Worker Report'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.info_outline),
-                selectedIcon: Icon(Icons.info),
-                label: Text('Company Details'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.settings_outlined),
-                selectedIcon: Icon(Icons.settings),
-                label: Text('Settings'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.logout),
-                selectedIcon: Icon(Icons.logout),
-                label: Text('Logout'),
-              ),
-            ],
-          ),
-          const VerticalDivider(thickness: 1, width: 1),
           Expanded(
-            child: _screens[_selectedIndex],
+            flex: 4,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: _screens[_selectedIndex],
+            ),
           ),
         ],
       ),

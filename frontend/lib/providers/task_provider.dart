@@ -8,13 +8,15 @@ final taskProvider = StateNotifierProvider<TaskNotifier, List<Task>>((ref) {
 });
 
 class TaskNotifier extends StateNotifier<List<Task>> {
+  final String baseUrl = 'http://192.168.0.101:3005';
+
   TaskNotifier() : super([]);
 
   // Fetch all tasks from the backend
   Future<void> fetchTasks() async {
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:3005/task/taskList/'),
+        Uri.parse('$baseUrl/task/taskList/'),
       );
 
       if (response.statusCode == 200) {
@@ -33,7 +35,7 @@ class TaskNotifier extends StateNotifier<List<Task>> {
   Future<void> createTask(Task task) async {
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:3005/task/taskCreate/'),
+        Uri.parse('$baseUrl/task/taskCreate/'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(task.toJson()),
       );
@@ -53,7 +55,7 @@ class TaskNotifier extends StateNotifier<List<Task>> {
   Future<void> updateTask(Task task) async {
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:3005/task/taskUpdate/${task.id}'), // Use POST instead of PUT
+        Uri.parse('$baseUrl/task/taskUpdate/${task.id}'), // Use POST instead of PUT
         headers: {'Content-Type': 'application/json'},
         body: json.encode(task.toJson()),
       );
@@ -74,7 +76,7 @@ class TaskNotifier extends StateNotifier<List<Task>> {
   Future<void> deleteTask(String taskId) async {
     try {
       final response = await http.delete(
-        Uri.parse('http://localhost:3005/task/taskDelete/$taskId'),
+        Uri.parse('$baseUrl/task/taskDelete/$taskId'),
         body: json.encode({}), // You can pass an empty body or additional data if needed
       );
 
@@ -96,7 +98,7 @@ class TaskNotifier extends StateNotifier<List<Task>> {
   Future<void> fetchTasksByStatus(String status) async {
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:3005/task/taskList/?status=$status'),
+        Uri.parse('$baseUrl/task/taskList/?status=$status'),
       );
 
       if (response.statusCode == 200) {
@@ -115,7 +117,7 @@ class TaskNotifier extends StateNotifier<List<Task>> {
   Future<void> fetchTasksByLocation(String location) async {
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:3005/task/taskList/?location=$location'),
+        Uri.parse('$baseUrl/task/taskList/?location=$location'),
       );
 
       if (response.statusCode == 200) {

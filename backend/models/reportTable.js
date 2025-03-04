@@ -5,8 +5,8 @@ const ReportSchema = new mongoose.Schema({
   taskId: { type: String, required: true },
   workerId: { type: String, required: true },
   reportText: { type: String, required: true },
-  imageUrls: [{ type: String, required: false }], // Store multiple image URLs
-  fileUrls: [{ type: String, required: false }], // Store multiple file URLs
+  imageUrls: [{ type: String, required: false }],
+  fileUrls: [{ type: String, required: false }],
   submittedAt: { type: Date, default: Date.now },
   reportRating: { type: Number, default: null },
 });

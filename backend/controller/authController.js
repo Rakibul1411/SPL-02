@@ -3,39 +3,32 @@ import User from '../models/userTable.js';
 import { generateOTP } from '../utils/otpGenerator.js';
 import { sendOTP } from '../utils/emailSender.js';
 
-// Registration function with OTP
 export const registration = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, latitude, longitude } = req.body;
 
   try {
-
-    // Check if email already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Generate OTP
     const otp = generateOTP();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // OTP expires in 10 minutes
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
-    // Create a new user
     const newUser = new User({
       name,
       email,
       password: hashedPassword,
       role,
-      status: 'inactive', // User is inactive until OTP is verified
+      status: 'inactive',
       otp,
       otpExpiry: otpExpires,
+      latitude,
+      longitude,
     });
 
     await newUser.save();
-
-    // Send OTP to the user's email
     await sendOTP(email, otp);
 
     res.status(201).json({isRegistration: true, message: 'OTP sent to your email. Please verify to complete registration.' });

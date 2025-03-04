@@ -33,8 +33,6 @@ class _LoginScreenState extends State<LoginScreen> {
           _passwordController.text,
         );
 
-        print(response['role']);
-
         if (response['requiresOTP'] == true) {
           final role = response['role'];
           final verifiedRole = await Navigator.push(
@@ -49,10 +47,10 @@ class _LoginScreenState extends State<LoginScreen> {
           );
 
           if (verifiedRole != null) {
-            _handleUserRole(verifiedRole);
+            _handleUserRole(verifiedRole, _emailController.text);
           }
         } else {
-          _handleUserRole(response['user']['role']);
+          _handleUserRole(response['user']['role'], _emailController.text);
         }
       } catch (error) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -64,24 +62,24 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _handleUserRole(String role) {
+  void _handleUserRole(String role, String email) {
     switch (role) {
       case 'Gig Worker':
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const GigWorkerScreen()),
+          MaterialPageRoute(builder: (context) => GigWorkerScreen(userEmail: email,)),
         );
         break;
       case 'Company':
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const CompanyScreen()),
+          MaterialPageRoute(builder: (context) => CompanyScreen(userEmail: email,)),
         );
         break;
       case 'Shop Manager':
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const ShopManagerScreen()),
+          MaterialPageRoute(builder: (context) => ShopManagerScreen(userEmail: email)),
         );
         break;
       default:

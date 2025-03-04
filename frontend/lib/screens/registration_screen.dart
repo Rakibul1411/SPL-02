@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../providers/authProvider.dart';
 import 'login_screen.dart';
 import 'otp_screen.dart';
+import 'map_screen.dart';
+import 'package:latlong2/latlong.dart';  // Import LatLng
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -13,7 +15,6 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
-  // All existing state variables and methods remain unchanged
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _userNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -25,6 +26,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _passwordVisible = false;
   bool _confirmPasswordVisible = false;
   bool _showPasswordRequirements = false;
+  LatLng? _selectedLocation;  // Store selected location (LatLng)
 
   final AuthProvider _authProvider = AuthProvider();
   final String passwordPattern = r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$';
@@ -46,14 +48,22 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   Future<void> _register() async {
-    // Original registration logic remains unchanged
     if (_formKey.currentState!.validate()) {
+      if (_selectedLocation == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a location')),
+        );
+        return;
+      }
+
       try {
         final response = await _authProvider.registerUser(
           _userNameController.text,
           _emailController.text,
           _passwordController.text,
           _selectedUserType,
+          _selectedLocation!.latitude,  // Pass latitude as double
+          _selectedLocation!.longitude, // Pass longitude as double
         );
 
         Navigator.pushReplacement(
@@ -71,6 +81,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           SnackBar(content: Text('Registration failed: $error')),
         );
       }
+    }
+  }
+
+  Future<void> _selectLocation() async {
+    final selectedLocation = await Navigator.push<LatLng>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const MapScreen(), // Open MapScreen for location selection
+      ),
+    );
+
+    if (selectedLocation != null) {
+      setState(() {
+        _selectedLocation = selectedLocation;
+      });
     }
   }
 
@@ -126,11 +151,40 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 _buildPasswordRequirements(),
               const SizedBox(height: 20),
               _buildConfirmPasswordField(),
+              const SizedBox(height: 20),
+              _buildLocationSelectionButton(), // Location selection button
               const SizedBox(height: 30),
               _buildRegisterButton(),
               const SizedBox(height: 20),
               _buildLoginPrompt(),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocationSelectionButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _selectLocation,
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          backgroundColor: Colors.blue[700],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 5,
+        ),
+        child: Text(
+          _selectedLocation == null
+              ? 'Select Location'
+              : 'Location Selected',
+          style: GoogleFonts.montserrat(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white
           ),
         ),
       ),
@@ -326,7 +380,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             'Register',
             style: GoogleFonts.montserrat(
                 fontSize: 16,
-                fontWeight: FontWeight.w600
+                fontWeight: FontWeight.w600,
+                color: Colors.white
             )
         ),
       ),
@@ -339,7 +394,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       children: [
         Text(
             'Already have an account? ',
-            style: GoogleFonts.openSans(color: Colors.grey)
+            style: GoogleFonts.openSans(color: Colors.blueGrey)
         ),
         GestureDetector(
           onTap: () {
