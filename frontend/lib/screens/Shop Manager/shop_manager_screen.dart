@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'profile_details_screen.dart';
+import '../OtherScreens/launch_page_screen.dart';
+import '../Profile/profile_details_screen.dart';
 import 'assign_task_survey_list_screen.dart';
 import 'settings_screen.dart';
 import 'previous_survey_list_screen.dart';
 import '../../providers/authProvider.dart';
 import '../../providers/profile_provider.dart';
+import '../Profile/UpdatePasswordScreen.dart'; // Import UpdatePasswordScreen
+import '../Profile/UpdateProfileScreen.dart'; // Import UpdateProfileScreen
 
 class ShopManagerScreen extends StatefulWidget {
   final String userEmail;
@@ -17,12 +20,20 @@ class ShopManagerScreen extends StatefulWidget {
 }
 
 class _ShopManagerScreenState extends State<ShopManagerScreen> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 4; // Welcome screen is the default
   String _userName = ""; // Variable to store the user's name
   bool _isLoading = true; // Loading state
 
   late final List<Widget> _screens;
   late final ProfileProvider _profileProvider;
+
+  final List<String> _appBarTitles = [
+    'Profile Details',
+    'Assign Survey List',
+    'Settings',
+    'Previous Survey List',
+    'Welcome', // Added welcome screen title
+  ];
 
   @override
   void initState() {
@@ -31,15 +42,130 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
     _screens = [
       ChangeNotifierProvider.value(
         value: _profileProvider,
-        child: DashboardScreen(userEmail: widget.userEmail),
+        child: ProfileDetailsScreen(userEmail: widget.userEmail),
       ),
       const AssignSurveyListScreen(),
-      const SettingsScreen(),
+      _buildSettingsScreen(), // Updated to include sub-modules
       const PreviousSurveyListScreen(),
+      _buildWelcomeScreen(), // Added welcome screen
     ];
 
     // Fetch user name when the screen initializes
     _fetchUserName();
+  }
+
+  // Build welcome screen
+  Widget _buildWelcomeScreen() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.blue.shade700, Colors.purple.shade700],
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.store,
+              size: 100,
+              color: Colors.white,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Welcome Back $_userName',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Logged in as: ${widget.userEmail}',
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.white70,
+              ),
+            ),
+            const SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _selectedIndex = 0; // Navigate to Profile Details
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              child: const Text(
+                'View Profile Details',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Build the Settings screen with ExpansionTile
+  Widget _buildSettingsScreen() {
+    return ListView(
+      children: [
+        Card(
+          margin: const EdgeInsets.all(8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          elevation: 4,
+          child: ExpansionTile(
+            leading: const Icon(Icons.settings_outlined, color: Colors.blue),
+            title: const Text(
+              'Settings',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            children: [
+              ListTile(
+                leading: const Icon(Icons.password, color: Colors.green),
+                title: const Text('Update Password'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UpdatePasswordScreen(userEmail: widget.userEmail),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.account_circle, color: Colors.orange),
+                title: const Text('Update Profile'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UpdateProfileScreen(userEmail: widget.userEmail),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   // Method to fetch user name from database
@@ -66,18 +192,17 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
     }
   }
 
-  final List<String> _appBarTitles = [
-    'Profile Details',
-    'Assign Survey List',
-    'Settings',
-    'Previous Survey List',
-  ];
-
   void _handleLogout(BuildContext context) async {
     final authProvider = AuthProvider();
     try {
       await authProvider.logout();
-      Navigator.pushReplacementNamed(context, '/login');
+      // Redirect to the LaunchScreen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const LaunchScreen(),
+        ),
+      );
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Logout failed: $error')),
@@ -90,110 +215,170 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_appBarTitles[_selectedIndex]),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.blue.shade700,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications),
+            icon: const Icon(Icons.notifications, color: Colors.white),
             onPressed: () {
               // Handle notifications
             },
           ),
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () => _handleLogout(context),
           ),
         ],
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(
-                color: Colors.blue,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.blue.shade700, Colors.purple.shade700],
+            ),
+          ),
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              DrawerHeader(
+                decoration: const BoxDecoration(
+                  color: Colors.transparent,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Colors.white,
+                      child: Icon(
+                        Icons.store,
+                        size: 30,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _isLoading
+                        ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                        : Text(
+                      _userName, // Now displays the user's name from database
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      widget.userEmail,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.8),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              ListTile(
+                leading: const Icon(Icons.home, color: Colors.white),
+                title: const Text(
+                  'Welcome',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 4;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.dashboard, color: Colors.white),
+                title: const Text(
+                  'Profile Details',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 0;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.assignment, color: Colors.white),
+                title: const Text(
+                  'Assign Survey',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 1;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ExpansionTile(
+                leading: const Icon(Icons.settings, color: Colors.white),
+                title: const Text(
+                  'Settings',
+                  style: TextStyle(color: Colors.white),
+                ),
                 children: [
-                  const CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.white,
-                    child: Icon(
-                      Icons.store,
-                      size: 30,
-                      color: Colors.blue,
+                  ListTile(
+                    leading: const Icon(Icons.password, color: Colors.white),
+                    title: const Text(
+                      'Update Password',
+                      style: TextStyle(color: Colors.white),
                     ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UpdatePasswordScreen(userEmail: widget.userEmail),
+                        ),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 10),
-                  _isLoading
-                      ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
+                  ListTile(
+                    leading: const Icon(Icons.account_circle, color: Colors.white),
+                    title: const Text(
+                      'Update Profile',
+                      style: TextStyle(color: Colors.white),
                     ),
-                  )
-                      : Text(
-                    _userName, // Now displays the user's name from database
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    widget.userEmail,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withOpacity(0.8),
-                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UpdateProfileScreen(userEmail: widget.userEmail),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.dashboard),
-              title: const Text('Profile Details'),
-              onTap: () {
-                setState(() {
-                  _selectedIndex = 0;
-                });
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.assignment),
-              title: const Text('Assign Survey'),
-              onTap: () {
-                setState(() {
-                  _selectedIndex = 1;
-                });
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-              onTap: () {
-                setState(() {
-                  _selectedIndex = 2;
-                });
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.list),
-              title: const Text('Previous Survey List'),
-              onTap: () {
-                setState(() {
-                  _selectedIndex = 3;
-                });
-                Navigator.pop(context);
-              },
-            ),
-          ],
+              ListTile(
+                leading: const Icon(Icons.list, color: Colors.white),
+                title: const Text(
+                  'Previous Survey List',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 3;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
         ),
       ),
       body: _screens[_selectedIndex],

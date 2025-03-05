@@ -8,12 +8,31 @@ final taskProvider = StateNotifierProvider<TaskNotifier, List<Task>>((ref) {
 });
 
 class TaskNotifier extends StateNotifier<List<Task>> {
-  final String baseUrl = 'http://192.168.0.101:3005';
+  //final String baseUrl = 'http://192.168.0.101:3005';
+  final String baseUrl = 'http://localhost:3005';
 
   TaskNotifier() : super([]);
 
   // Fetch all tasks from the backend
   Future<void> fetchTasks() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/task/taskList/'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> taskList = json.decode(response.body);
+        state = taskList.map((task) => Task.fromJson(task)).toList();
+      } else {
+        throw Exception('Failed to fetch tasks: ${response.body}');
+      }
+    } catch (error) {
+      print('Error fetching tasks: $error');
+      rethrow;
+    }
+  }
+
+  Future<void> fetchTasksById() async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/task/taskList/'),

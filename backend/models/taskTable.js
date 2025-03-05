@@ -29,7 +29,7 @@ const taskSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'in_progress', 'finished', 'deadline_passed'],
+      enum: ['pending', 'finished', 'deadline_passed'],
       default: 'pending',
     },
     latitude: {
@@ -40,20 +40,43 @@ const taskSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    selectedWorker: {
-      type: Map,
-      of: Number,
-    },
-    acceptedWorker: {
-      type: Map, // Key-value pair: workerId -> distance
-      of: Number, // Value is a number (distance)
-      default: {}, // Default to an empty map
-    },
-    rejectedWorker: {
-      type: Map, // Key-value pair: workerId -> distance
-      of: Number, // Value is a number (distance)
-      default: {}, // Default to an empty map
-    },
+    selectedWorkers: [{
+      workerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+      },
+      email: {
+        type: String,
+        required: true
+      },
+      distance: {
+        type: Number,
+        required: true
+      }
+    }],
+    acceptedByWorkers: [{
+      workerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+      },
+      email: {
+        type: String,
+        required: true
+      },
+    }],
+    rejectedByWorkers: [{
+      workerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+      },
+      email: {
+        type: String,
+        required: true
+      },
+    }],
   },
   { timestamps: true }
 );

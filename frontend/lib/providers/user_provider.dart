@@ -6,16 +6,32 @@ import 'authProvider.dart';
 class ProfileProvider extends StateNotifier<ProfileState> {
   final AuthProvider _authProvider;
 
+  // Add a method to get the current user ID
+  String? get currentUserId => state.id;
+  
   ProfileProvider(this._authProvider) : super(ProfileState());
 
-  // Fetch user profile data
   Future<void> fetchUserProfile(String userEmail) async {
+    if (userEmail.isEmpty) {
+      state = state.copyWith(
+        errorMessage: 'User email is required',
+        isLoading: false,
+      );
+      return;
+    }
+
     state = state.copyWith(isLoading: true, errorMessage: null);
 
-    final url = Uri.parse('http://192.168.0.101:3005/profile/getProfile/$userEmail');
+    final encodedEmail = Uri.encodeComponent(userEmail); // Encode the email
+    final url = Uri.parse('http://localhost:3005/profile/getProfile/$encodedEmail');
+
+    print('Fetching profile from URL: $url');
 
     try {
       final response = await http.get(url);
+
+      print('Response status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -24,22 +40,34 @@ class ProfileProvider extends StateNotifier<ProfileState> {
           email: data['email'] ?? '',
           role: data['role'] ?? '',
           isVerified: data['isVerified'] ?? false,
-          companyId: data['companyId'] ?? '',
+          id: data['id'] ?? '',
           isLoading: false,
         );
+        print('User Profile Fetched Successfully: ${state.id}');
       } else {
-        final errorData = json.decode(response.body);
-        state = state.copyWith(
-          errorMessage: errorData['message'] ?? 'Failed to fetch user profile',
-          isLoading: false,
-        );
+        // Log the response body for debugging
+        print('Error response body: ${response.body}');
+
+        // Handle non-JSON responses
+        if (response.body.startsWith('<!DOCTYPE html>')) {
+          state = state.copyWith(
+            errorMessage: 'Server returned an HTML error page. Check the backend API.',
+            isLoading: false,
+          );
+        } else {
+          final errorData = json.decode(response.body);
+          state = state.copyWith(
+            errorMessage: errorData['message'] ?? 'Failed to fetch user profile',
+            isLoading: false,
+          );
+        }
       }
     } catch (error) {
       state = state.copyWith(
         errorMessage: 'Failed to connect to server: ${error.toString()}',
         isLoading: false,
       );
-      print('Connection error: ${error.toString()}');
+      print('Connection error in user profile: ${error.toString()}');
     }
   }
 
@@ -70,15 +98,77 @@ class ProfileProvider extends StateNotifier<ProfileState> {
   void clearProfile() {
     state = ProfileState();
   }
+
+  // Add methods to update latitude and longitude
+  void updateLatitude(double latitude) {
+    state = state.copyWith(latitude: latitude);
+  }
+
+  void updateLongitude(double longitude) {
+    state = state.copyWith(longitude: longitude);
+  }
+
+  // Add methods to update latitude and longitude
+  void updateName(String name) {
+    state = state.copyWith(name: name);
+  }
+
+  void updateEmail(String email) {
+    state = state.copyWith(email: email);
+  }
+
+  // Save profile changes
+  Future<void> saveProfile(String userEmail) async {
+    if (state.isLoading) return;
+
+    state = state.copyWith(isLoading: true, errorMessage: null);
+
+    final url = Uri.parse('http://localhost:3005/profile/updateProfile');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': userEmail,
+          'name': state.name,
+          'latitude': state.latitude,
+          'longitude': state.longitude,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        state = state.copyWith(
+          name: data['name'],
+          latitude: data['latitude'],
+          longitude: data['longitude'],
+          isLoading: false,
+        );
+      } else {
+        final errorData = json.decode(response.body);
+        state = state.copyWith(
+          errorMessage: errorData['message'] ?? 'Failed to update profile',
+          isLoading: false,
+        );
+      }
+    } catch (error) {
+      state = state.copyWith(
+        errorMessage: 'Failed to connect to server: ${error.toString()}',
+        isLoading: false,
+      );
+    }
+  }
 }
 
-// State class to hold profile data
 class ProfileState {
   final String? name;
   final String? email;
   final String? role;
   final bool? isVerified;
-  final String? companyId;
+  final String? id;
+  final double? latitude;
+  final double? longitude;
   final bool isLoading;
   final String? errorMessage;
 
@@ -87,18 +177,21 @@ class ProfileState {
     this.email,
     this.role,
     this.isVerified,
-    this.companyId,
+    this.id,
+    this.latitude,
+    this.longitude,
     this.isLoading = false,
     this.errorMessage,
   });
 
-  // Convenience method to create a copy with updated values
   ProfileState copyWith({
     String? name,
     String? email,
     String? role,
     bool? isVerified,
-    String? companyId,
+    String? id,
+    double? latitude,
+    double? longitude,
     bool? isLoading,
     String? errorMessage,
   }) {
@@ -107,13 +200,14 @@ class ProfileState {
       email: email ?? this.email,
       role: role ?? this.role,
       isVerified: isVerified ?? this.isVerified,
-      companyId: companyId ?? this.companyId,
+      id: id ?? this.id,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
-  // Getter for user profile
   Map<String, dynamic>? get userProfile {
     if (name == null && email == null && role == null) return null;
 
@@ -122,7 +216,9 @@ class ProfileState {
       'email': email,
       'role': role,
       'isVerified': isVerified,
-      'companyId': companyId,
+      'id': id,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 }

@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/profile_provider.dart';
 
-class DashboardScreen extends StatefulWidget {
+class ProfileDetailsScreen extends StatefulWidget {
   final String userEmail;
 
-  const DashboardScreen({super.key, required this.userEmail});
+  const ProfileDetailsScreen({super.key, required this.userEmail});
 
   @override
   _DashboardScreenState createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<ProfileDetailsScreen> {
   @override
   void initState() {
     super.initState();

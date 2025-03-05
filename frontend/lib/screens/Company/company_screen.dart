@@ -7,6 +7,8 @@ import 'create_task_screen.dart';
 import 'task_list_screen.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/authProvider.dart';
+import '../Profile/UpdatePasswordScreen.dart'; // Import UpdatePasswordScreen
+import '../Profile/UpdateProfileScreen.dart'; // Import UpdateProfileScreen
 
 class CompanyScreen extends ConsumerStatefulWidget {
   final String userEmail;
@@ -47,52 +49,124 @@ class _CompanyScreenState extends ConsumerState<CompanyScreen> {
       const Center(child: Text('Gig Worker Report List')),
       provider.ChangeNotifierProvider.value(
         value: _profileProvider,
-        child: DashboardScreen(userEmail: widget.userEmail),
+        child: ProfileDetailsScreen(userEmail: widget.userEmail),
       ),
-      const Center(child: Text('Settings')),
+      _buildSettingsScreen(), // Updated to include sub-modules
       _buildWelcomeScreen(),
     ];
     _fetchCompanyDetails();
   }
 
   Widget _buildWelcomeScreen() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.business,
-            size: 100,
-            color: Colors.blue,
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Welcome to ${_companyName}',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Logged in as: ${widget.userEmail}',
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
-          ),
-          const SizedBox(height: 30),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _selectedIndex = 0;
-              });
-            },
-            child: const Text('Create Your First Task'),
-          ),
-        ],
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.blue.shade700, Colors.purple.shade700],
+        ),
       ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.business,
+              size: 100,
+              color: Colors.white,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Welcome Back $_companyName',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Logged in as: ${widget.userEmail}',
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.white70,
+              ),
+            ),
+            const SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _selectedIndex = 0;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              child: const Text(
+                'Create Your First Task',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Build the Settings screen with ExpansionTile
+  Widget _buildSettingsScreen() {
+    return ListView(
+      children: [
+        Card(
+          margin: const EdgeInsets.all(8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          elevation: 4,
+          child: ExpansionTile(
+            leading: const Icon(Icons.settings_outlined, color: Colors.blue),
+            title: const Text(
+              'Settings',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            children: [
+              ListTile(
+                leading: const Icon(Icons.password, color: Colors.green),
+                title: const Text('Update Password'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UpdatePasswordScreen(userEmail: widget.userEmail),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.account_circle, color: Colors.orange),
+                title: const Text('Update Profile'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UpdateProfileScreen(userEmail: widget.userEmail),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -138,13 +212,16 @@ class _CompanyScreenState extends ConsumerState<CompanyScreen> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(_screenTitles[_selectedIndex]),
+        title: Text(
+          _screenTitles[_selectedIndex],
+          style: const TextStyle(color: Colors.white),
+        ),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.blue.shade700,
         elevation: 2,
         leading: _selectedIndex == 3 // Back button only for Company Details screen
             ? IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             setState(() {
               _selectedIndex = 5; // Navigate back to Welcome screen
@@ -152,105 +229,164 @@ class _CompanyScreenState extends ConsumerState<CompanyScreen> {
           },
         )
             : IconButton(
-          icon: const Icon(Icons.menu),
+          icon: const Icon(Icons.menu, color: Colors.white),
           onPressed: () {
             _scaffoldKey.currentState?.openDrawer();
           },
         ),
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            UserAccountsDrawerHeader(
-              decoration: const BoxDecoration(
-                color: Colors.blue,
-              ),
-              accountName: _isLoading
-                  ? const CircularProgressIndicator(
-                color: Colors.white,
-              )
-                  : Text(
-                _companyName,
-                style: const TextStyle(fontSize: 20, color: Colors.white),
-              ),
-              accountEmail: Text(widget.userEmail),
-              currentAccountPicture: const CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Icon(
-                  Icons.business,
-                  color: Colors.blue,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.blue.shade700, Colors.purple.shade700],
+            ),
+          ),
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              UserAccountsDrawerHeader(
+                decoration: const BoxDecoration(
+                  color: Colors.transparent,
+                ),
+                accountName: _isLoading
+                    ? const CircularProgressIndicator(
+                  color: Colors.white,
+                )
+                    : Text(
+                  _companyName,
+                  style: const TextStyle(fontSize: 20, color: Colors.white),
+                ),
+                accountEmail: Text(
+                  widget.userEmail,
+                  style: const TextStyle(color: Colors.white70),
+                ),
+                currentAccountPicture: const CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: Icon(
+                    Icons.business,
+                    color: Colors.blue,
+                  ),
                 ),
               ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home_outlined),
-              title: const Text('Welcome'),
-              onTap: () {
-                setState(() {
-                  _selectedIndex = 5;
-                });
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.add_task_outlined),
-              title: const Text('Create Task'),
-              onTap: () {
-                setState(() {
-                  _selectedIndex = 0;
-                });
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.task_outlined),
-              title: const Text('All Tasks'),
-              onTap: () {
-                setState(() {
-                  _selectedIndex = 1;
-                });
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.report_outlined),
-              title: const Text('Gig Worker Report'),
-              onTap: () {
-                setState(() {
-                  _selectedIndex = 2;
-                });
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.info_outline),
-              title: const Text('Company Details'),
-              onTap: () {
-                setState(() {
-                  _selectedIndex = 3;
-                });
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings_outlined),
-              title: const Text('Settings'),
-              onTap: () {
-                setState(() {
-                  _selectedIndex = 4;
-                });
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Logout'),
-              onTap: () {
-                _logout(context);
-              },
-            ),
-          ],
+              ListTile(
+                leading: const Icon(Icons.home_outlined, color: Colors.white),
+                title: const Text(
+                  'Welcome',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 5; // Navigate to Welcome screen
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.add_task_outlined, color: Colors.white),
+                title: const Text(
+                  'Create Task',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 0;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.task_outlined, color: Colors.white),
+                title: const Text(
+                  'All Tasks',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 1;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.report_outlined, color: Colors.white),
+                title: const Text(
+                  'Gig Worker Report',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 2;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.info_outline, color: Colors.white),
+                title: const Text(
+                  'Company Details',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 3;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ExpansionTile(
+                leading: const Icon(Icons.settings_outlined, color: Colors.white),
+                title: const Text(
+                  'Settings',
+                  style: TextStyle(color: Colors.white),
+                ),
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.password, color: Colors.white),
+                    title: const Text(
+                      'Update Password',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UpdatePasswordScreen(userEmail: widget.userEmail),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.account_circle, color: Colors.white),
+                    title: const Text(
+                      'Update Profile',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UpdateProfileScreen(userEmail: widget.userEmail),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.white),
+                title: const Text(
+                  'Logout',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  _logout(context);
+                },
+              ),
+            ],
+          ),
         ),
       ),
       body: Row(

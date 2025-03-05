@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class AuthProvider {
-  final String baseUrl = 'http://192.168.0.101:3005'; // Replace with your backend URL
+  final String baseUrl = 'http://localhost:3005'; // Replace with your backend URL
 
   // Register User
   Future<Map<String, dynamic>> registerUser(
@@ -121,10 +121,7 @@ class AuthProvider {
   }
 
   Future<void> logout() async {
-    // Perform logout logic (e.g., clear tokens, session data, etc.)
-    // Example:
-    // await clearToken(); // Clear any stored tokens
-    // await clearUserData(); // Clear user data from local storage
+
   }
 
   final authProvider = Provider<AuthProvider>((ref) {

@@ -9,7 +9,7 @@ class ProfileProvider extends ChangeNotifier {
   String? email;
   String? role;
   bool? isVerified;
-  String? companyId;
+  String? id;
   bool isLoading = false;
   String? errorMessage;
   final AuthProvider _authProvider = AuthProvider();
@@ -30,7 +30,7 @@ class ProfileProvider extends ChangeNotifier {
       'email': email,
       'role': role,
       'isVerified': isVerified,
-      'companyId': companyId,
+      'id': id,
     };
   }
 
@@ -64,7 +64,8 @@ class ProfileProvider extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
 
-    final url = Uri.parse('http://192.168.0.101:3005/profile/getProfile/$userEmail'); // Adjust if needed
+    //final url = Uri.parse('http://192.168.0.101:3005/profile/getProfile/$userEmail'); // Adjust if needed
+    final url = Uri.parse('http://localhost:3005/profile/getProfile/$userEmail');
 
     try {
       final response = await http.get(url);
@@ -75,14 +76,14 @@ class ProfileProvider extends ChangeNotifier {
         email = data['email'] ?? '';
         role = data['role'] ?? '';
         isVerified = data['isVerified'] ?? false;
-        companyId = data['companyId'] ?? '';
+        id = data['id'] ?? '';
       } else {
         final errorData = json.decode(response.body);
         errorMessage = errorData['message'] ?? 'Failed to fetch user profile';
       }
     } catch (error) {
       errorMessage = 'Failed to connect to server: ${error.toString()}';
-      print('Connection error: ${error.toString()}');
+      print('Connection error in profile: ${error.toString()}');
     } finally {
       isLoading = false;
       notifyListeners();
@@ -95,7 +96,7 @@ class ProfileProvider extends ChangeNotifier {
     email = null;
     role = null;
     isVerified = null;
-    companyId = null;
+    id = null;
     notifyListeners();
   }
 }
