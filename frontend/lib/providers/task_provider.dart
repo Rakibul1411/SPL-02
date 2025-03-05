@@ -130,4 +130,32 @@ class TaskNotifier extends StateNotifier<List<Task>> {
       rethrow;
     }
   }
+
+
+  // ✅ Function to complete a task and submit a rating
+  Future<void> completeTask(String taskId, String workerId, int rating, String feedback) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/task/complete'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'taskId': taskId,
+          'workerId': workerId,
+          'rating': rating,
+          'feedback': feedback,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        // Update UI after completion (Optional: Fetch tasks again)
+        fetchTasks();
+      } else {
+        throw Exception('Failed to complete task');
+      }
+    } catch (error) {
+      print('Error completing task: $error');
+      rethrow;
+    }
+  }
 }
+

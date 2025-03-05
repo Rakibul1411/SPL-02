@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/screens/Company/task_list_screen.dart';
 import 'package:frontend/screens/after_registration_screen.dart';
+import 'package:frontend/screens/incentive_and_rating_screen.dart';
 import 'package:frontend/screens/launch_page_screen.dart';
 import 'package:frontend/screens/login_screen.dart';
 import 'package:frontend/screens/registration_screen.dart';
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LaunchScreen(),
+      home: IncentiveAndRatingScreen(workerId: '67c57d873fc3b614f6b822ff'),
       // home: const ReportSubmissionScreen(taskId: '1', workerId: '1',),
       debugShowCheckedModeBanner: false, // Or your home screen
     );

@@ -1,5 +1,6 @@
 import Task from "../models/taskTable.js";
 import User from "../models/userTable.js"; // Import User model to get gig workers
+//import Incentive from "../models/incentive&ratingTable.js"
 import { sendNotification } from "../socket/socket.js"; // Import WebSocket function
 import { sendTaskEmailNotification } from "../utils/emailSender.js"; // Import email function
 
@@ -106,3 +107,32 @@ export const deleteTask = async (req, res) => {
     res.status(500).json({ error: 'Failed to delete task', details: error.message });
   }
 };
+
+
+//import Incentive from "../models/Incentive.js";
+//import Rating from "../models/Rating.js";
+//import Task from "../models/Task.js";
+
+// Task completion handler
+export const completeTask = async (req, res) => {
+  try {
+    const { taskId, workerId, rating, feedback } = req.body;
+
+    // Update task status
+    const task = await Task.findByIdAndUpdate(taskId, { status: "Completed" }, { new: true });
+    if (!task) return res.status(404).json({ error: "Task not found" });
+
+    // Issue incentive
+    const incentive = new Incentive({ workerId, taskId, amount: task.incentive });
+    await incentive.save();
+
+    // Rate worker
+    const ratingEntry = new Rating({ workerId, taskId, rating, feedback, ratedBy: req.user.id });
+    await ratingEntry.save();
+
+    res.status(200).json({ message: "Task completed, incentive issued, and worker rated" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to complete task", details: error.message });
+  }
+};
+
