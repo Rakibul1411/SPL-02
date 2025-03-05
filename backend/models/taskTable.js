@@ -4,28 +4,55 @@ const taskSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: true
+      required: true,
+    },
+    companyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
     },
     description: {
       type: String,
-      required: true
+      required: true,
     },
-    location: {
+    shopName: {
       type: String,
-      required: true
+      required: true,
     },
     incentive: {
       type: Number,
-      required: true
+      required: true,
     },
     deadline: {
       type: Date,
-      required: true
+      required: true,
     },
     status: {
       type: String,
-      enum: ['pending', 'in_progress', 'finished', 'rejected', 'accepted', 'deadline_passed'],
-      default: 'pending'
+      enum: ['pending', 'in_progress', 'finished', 'deadline_passed'],
+      default: 'pending',
+    },
+    latitude: {
+      type: Number,
+      required: true,
+    },
+    longitude: {
+      type: Number,
+      required: true,
+    },
+    selectedWorker: {
+      type: Map,
+      of: Number,
+    },
+    acceptedWorker: {
+      type: Map, // Key-value pair: workerId -> distance
+      of: Number, // Value is a number (distance)
+      default: {}, // Default to an empty map
+    },
+    rejectedWorker: {
+      type: Map, // Key-value pair: workerId -> distance
+      of: Number, // Value is a number (distance)
+      default: {}, // Default to an empty map
     },
   },
   { timestamps: true }

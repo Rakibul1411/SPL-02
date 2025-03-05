@@ -5,7 +5,7 @@ import '../../providers/task_provider.dart';
 import 'create_task_screen.dart';
 
 class TaskListScreen extends ConsumerStatefulWidget {
-  const TaskListScreen({super.key});
+  const TaskListScreen({super.key, required String userEmail});
 
   @override
   ConsumerState<TaskListScreen> createState() => _TaskListScreenState();
@@ -68,7 +68,7 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CreateTaskScreen(task: task),
+        builder: (context) => CreateTaskScreen(task: task, userEmail: '',),
       ),
     ).then((result) {
       if (result == true) {
@@ -232,7 +232,7 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              task.location,
+                              task.shopName,
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 14,
@@ -294,7 +294,7 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const CreateTaskScreen(),
+                builder: (context) => const CreateTaskScreen(userEmail: '',),
               ),
             );
             if (result == true) {

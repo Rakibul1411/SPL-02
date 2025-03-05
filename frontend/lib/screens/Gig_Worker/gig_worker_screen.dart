@@ -26,8 +26,7 @@ class GigWorkerScreen extends ConsumerStatefulWidget {
 }
 
 class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
-  int _selectedIndex = 0;
-  bool _isSidebarExpanded = false;
+  int _selectedIndex = 5; // Welcome screen
   String _userName = "";
   bool _isLoading = true;
 
@@ -39,6 +38,8 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
     'Tasks',
     'Settings',
     'Report',
+    'Update Profile',
+    'Welcome', // Added welcome screen title
   ];
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -55,10 +56,54 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
       const NewTaskListScreen(),
       _buildSettingsScreen(),
       const ReportSubmissionScreen(taskId: '1', workerId: '1'),
+      UpdateProfileScreen(userEmail: widget.userEmail),
+      _buildWelcomeScreen(), // Added welcome screen
     ];
 
     // Fetch user name when the screen initializes
     _fetchUserName();
+  }
+
+  // Build welcome screen
+  Widget _buildWelcomeScreen() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.person_outline,
+            size: 100,
+            color: Colors.blue,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Welcome, $_userName',
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Logged in as: ${widget.userEmail}',
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 30),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                _selectedIndex = 0; // Navigate to Profile Details
+              });
+            },
+            child: const Text('View Profile Details'),
+          ),
+        ],
+      ),
+    );
   }
 
   // Method to fetch user name from database
@@ -126,12 +171,9 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
               leading: const Icon(Icons.account_circle),
               title: const Text('Update Profile'),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => UpdateProfileScreen(userEmail: widget.userEmail),
-                  ),
-                );
+                setState(() {
+                  _selectedIndex = 4; // Navigate to Update Profile screen
+                });
               },
             ),
           ],
@@ -147,11 +189,35 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
       id: '1',
       title: 'Sample Task',
       description: 'This is a sample task.',
-      location: 'Sample Location',
+      shopName: 'Sample Location',
       deadline: DateTime.now().add(const Duration(days: 1)),
       status: 'pending',
-      incentive: 10,
+      incentive: 10, companyId: 'iii', latitude: 0.0, longitude: 0.0,
     );
+
+    // Determine the appropriate leading icon
+    Widget? leadingIcon;
+
+    // If on Welcome screen, show menu icon
+    if (_selectedIndex == 5) {
+      leadingIcon = IconButton(
+        icon: const Icon(Icons.menu),
+        onPressed: () {
+          _scaffoldKey.currentState?.openDrawer();
+        },
+      );
+    }
+    // For other screens, show back button that returns to Welcome screen
+    else {
+      leadingIcon = IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () {
+          setState(() {
+            _selectedIndex = 5; // Return to Welcome screen
+          });
+        },
+      );
+    }
 
     return Scaffold(
       key: _scaffoldKey,
@@ -160,21 +226,7 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
         centerTitle: true,
         backgroundColor: Colors.blue,
         elevation: 2,
-        leading: IconButton(
-          icon: Icon(
-            _isSidebarExpanded ? Icons.arrow_back : Icons.menu,
-          ),
-          onPressed: () {
-            setState(() {
-              _isSidebarExpanded = !_isSidebarExpanded;
-            });
-            if (_isSidebarExpanded) {
-              _scaffoldKey.currentState?.openDrawer();
-            } else {
-              Navigator.of(context).pop();
-            }
-          },
-        ),
+        leading: leadingIcon,
       ),
       drawer: Drawer(
         child: ListView(
@@ -193,13 +245,23 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
                 style: const TextStyle(fontSize: 20, color: Colors.white),
               ),
               accountEmail: Text(widget.userEmail),
-              currentAccountPicture: CircleAvatar(
+              currentAccountPicture: const CircleAvatar(
                 backgroundColor: Colors.white,
-                child: const Icon(
+                child: Icon(
                   Icons.person,
                   color: Colors.blue,
                 ),
               ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home_outlined),
+              title: const Text('Welcome'),
+              onTap: () {
+                setState(() {
+                  _selectedIndex = 5; // Navigate to Welcome screen
+                });
+                Navigator.pop(context);
+              },
             ),
             ListTile(
               leading: const Icon(Icons.person_outline),
@@ -207,11 +269,11 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
               onTap: () {
                 setState(() {
                   _selectedIndex = 0;
-                  _isSidebarExpanded = false;
                 });
                 Navigator.pop(context);
               },
             ),
+
             ExpansionTile(
               leading: const Icon(Icons.task_outlined),
               title: const Text('Tasks'),
@@ -326,7 +388,6 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
               onTap: () {
                 setState(() {
                   _selectedIndex = 3;
-                  _isSidebarExpanded = false;
                 });
                 Navigator.pop(context);
               },

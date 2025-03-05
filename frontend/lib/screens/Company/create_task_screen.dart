@@ -7,7 +7,7 @@ import 'task_list_screen.dart';
 class CreateTaskScreen extends ConsumerStatefulWidget {
   final Task? task; // Make the task parameter optional
 
-  const CreateTaskScreen({super.key, this.task});
+  const CreateTaskScreen({super.key, this.task, required String userEmail});
 
   @override
   _CreateTaskScreenState createState() => _CreateTaskScreenState();
@@ -28,7 +28,7 @@ class _CreateTaskScreenState extends ConsumerState<CreateTaskScreen> {
       // Pre-fill the form if editing an existing task
       _titleController.text = widget.task!.title;
       _descriptionController.text = widget.task!.description;
-      _locationController.text = widget.task!.location;
+      _locationController.text = widget.task!.shopName;
       _incentiveController.text = widget.task!.incentive.toString();
       _deadline = widget.task!.deadline;
     }
@@ -259,10 +259,10 @@ class _CreateTaskScreenState extends ConsumerState<CreateTaskScreen> {
         id: widget.task?.id, // Include the ID if editing
         title: _titleController.text,
         description: _descriptionController.text,
-        location: _locationController.text,
+        shopName: _locationController.text,
         incentive: double.parse(_incentiveController.text),
         deadline: _deadline!,
-        status: widget.task?.status ?? 'pending',
+        status: widget.task?.status ?? 'pending', companyId: '', latitude: 0.0, longitude: 0.0,
       );
 
       if (widget.task == null) {
@@ -270,7 +270,7 @@ class _CreateTaskScreenState extends ConsumerState<CreateTaskScreen> {
         ref.read(taskProvider.notifier).createTask(newTask).then((_) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const TaskListScreen()),
+            MaterialPageRoute(builder: (context) => const TaskListScreen(userEmail: '',)),
           );
         }).catchError((error) {
           print('Error creating task: $error');
@@ -280,7 +280,7 @@ class _CreateTaskScreenState extends ConsumerState<CreateTaskScreen> {
         ref.read(taskProvider.notifier).updateTask(newTask).then((_) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const TaskListScreen()),
+            MaterialPageRoute(builder: (context) => const TaskListScreen(userEmail: '',)),
           );
         }).catchError((error) {
           print('Error updating task: $error');

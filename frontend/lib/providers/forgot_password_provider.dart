@@ -99,8 +99,7 @@ class ForgotPasswordProvider extends StateNotifier<ForgotPasswordState> {
     }
   }
 
-  // Method to update the password (new method for password update)
-  Future<void> updatePassword(String email, String currentPassword, String newPassword) async {
+  Future<http.Response> updatePassword(String email, String currentPassword, String newPassword) async {
     final url = Uri.parse('$baseUrl/auth/update-password');
     try {
       print("Email received in updatePassword: $email");
@@ -114,16 +113,22 @@ class ForgotPasswordProvider extends StateNotifier<ForgotPasswordState> {
         }),
       );
 
-      print("email is: $email");
-
       if (response.statusCode == 200) {
         state = state.copyWith(errorMessage: null);
       } else {
         final responseBody = jsonDecode(response.body);
         state = state.copyWith(errorMessage: responseBody['message'] ?? 'Failed to update password');
       }
+
+      // Return the response
+      return response;
     } catch (error) {
+      // Handle the error and return a custom response
       state = state.copyWith(errorMessage: 'Failed to update password: $error');
+      return http.Response(
+        jsonEncode({'message': 'Failed to update password: $error'}),
+        500, // Internal Server Error status code
+      );
     }
   }
 

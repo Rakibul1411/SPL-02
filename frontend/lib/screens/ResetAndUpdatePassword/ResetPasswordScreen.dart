@@ -71,7 +71,7 @@ class ResetPasswordScreen extends ConsumerWidget {
               },
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 18),
-                backgroundColor: Colors.blue[700],
+                backgroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

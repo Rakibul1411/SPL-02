@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart' as provider;
+import '../OtherScreens/launch_page_screen.dart';
 import '../Profile/profile_details_screen.dart';
 import 'create_task_screen.dart';
 import 'task_list_screen.dart';
@@ -17,7 +18,7 @@ class CompanyScreen extends ConsumerStatefulWidget {
 }
 
 class _CompanyScreenState extends ConsumerState<CompanyScreen> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 5;
   bool _isSidebarExpanded = false;
   String _companyName = "";
   bool _isLoading = true;
@@ -25,7 +26,6 @@ class _CompanyScreenState extends ConsumerState<CompanyScreen> {
   late final List<Widget> _screens;
   late final ProfileProvider _profileProvider;
 
-  // Create a GlobalKey for the Scaffold to control the Drawer
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<String> _screenTitles = [
@@ -34,6 +34,7 @@ class _CompanyScreenState extends ConsumerState<CompanyScreen> {
     'Gig Worker Report List',
     'Company Details',
     'Settings',
+    'Welcome',
   ];
 
   @override
@@ -41,16 +42,58 @@ class _CompanyScreenState extends ConsumerState<CompanyScreen> {
     super.initState();
     _profileProvider = ProfileProvider();
     _screens = [
-      const CreateTaskScreen(),
-      const TaskListScreen(),
+      CreateTaskScreen(userEmail: widget.userEmail),
+      TaskListScreen(userEmail: widget.userEmail),
       const Center(child: Text('Gig Worker Report List')),
       provider.ChangeNotifierProvider.value(
         value: _profileProvider,
         child: DashboardScreen(userEmail: widget.userEmail),
       ),
       const Center(child: Text('Settings')),
+      _buildWelcomeScreen(),
     ];
     _fetchCompanyDetails();
+  }
+
+  Widget _buildWelcomeScreen() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.business,
+            size: 100,
+            color: Colors.blue,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Welcome to ${_companyName}',
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Logged in as: ${widget.userEmail}',
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 30),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                _selectedIndex = 0;
+              });
+            },
+            child: const Text('Create Your First Task'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _fetchCompanyDetails() async {
@@ -77,7 +120,12 @@ class _CompanyScreenState extends ConsumerState<CompanyScreen> {
     final authProvider = AuthProvider();
     try {
       await authProvider.logout();
-      Navigator.pushReplacementNamed(context, '/login');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const LaunchScreen(),
+        ),
+      );
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Logout failed: $error')),
@@ -88,16 +136,25 @@ class _CompanyScreenState extends ConsumerState<CompanyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,  // Assign the ScaffoldKey here
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text(_screenTitles[_selectedIndex]),
         centerTitle: true,
         backgroundColor: Colors.blue,
         elevation: 2,
-        leading: IconButton(
-          icon: Icon(Icons.menu), // Left-side hamburger icon
+        leading: _selectedIndex == 3 // Back button only for Company Details screen
+            ? IconButton(
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            _scaffoldKey.currentState?.openDrawer(); // Open the drawer
+            setState(() {
+              _selectedIndex = 5; // Navigate back to Welcome screen
+            });
+          },
+        )
+            : IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () {
+            _scaffoldKey.currentState?.openDrawer();
           },
         ),
       ),
@@ -106,7 +163,7 @@ class _CompanyScreenState extends ConsumerState<CompanyScreen> {
           padding: EdgeInsets.zero,
           children: [
             UserAccountsDrawerHeader(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.blue,
               ),
               accountName: _isLoading
@@ -115,75 +172,80 @@ class _CompanyScreenState extends ConsumerState<CompanyScreen> {
               )
                   : Text(
                 _companyName,
-                style: TextStyle(fontSize: 20, color: Colors.white),
+                style: const TextStyle(fontSize: 20, color: Colors.white),
               ),
               accountEmail: Text(widget.userEmail),
-              currentAccountPicture: CircleAvatar(
+              currentAccountPicture: const CircleAvatar(
                 backgroundColor: Colors.white,
-                child: const Icon(
+                child: Icon(
                   Icons.business,
                   color: Colors.blue,
                 ),
               ),
             ),
             ListTile(
-              leading: Icon(Icons.add_task_outlined),
-              title: Text('Create Task'),
+              leading: const Icon(Icons.home_outlined),
+              title: const Text('Welcome'),
+              onTap: () {
+                setState(() {
+                  _selectedIndex = 5;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.add_task_outlined),
+              title: const Text('Create Task'),
               onTap: () {
                 setState(() {
                   _selectedIndex = 0;
-                  _isSidebarExpanded = false;
                 });
                 Navigator.pop(context);
               },
             ),
             ListTile(
-              leading: Icon(Icons.task_outlined),
-              title: Text('All Tasks'),
+              leading: const Icon(Icons.task_outlined),
+              title: const Text('All Tasks'),
               onTap: () {
                 setState(() {
                   _selectedIndex = 1;
-                  _isSidebarExpanded = false;
                 });
                 Navigator.pop(context);
               },
             ),
             ListTile(
-              leading: Icon(Icons.report_outlined),
-              title: Text('Gig Worker Report'),
+              leading: const Icon(Icons.report_outlined),
+              title: const Text('Gig Worker Report'),
               onTap: () {
                 setState(() {
                   _selectedIndex = 2;
-                  _isSidebarExpanded = false;
                 });
                 Navigator.pop(context);
               },
             ),
             ListTile(
-              leading: Icon(Icons.info_outline),
-              title: Text('Company Details'),
+              leading: const Icon(Icons.info_outline),
+              title: const Text('Company Details'),
               onTap: () {
                 setState(() {
                   _selectedIndex = 3;
-                  _isSidebarExpanded = false;
                 });
                 Navigator.pop(context);
               },
             ),
             ListTile(
-              leading: Icon(Icons.settings_outlined),
-              title: Text('Settings'),
+              leading: const Icon(Icons.settings_outlined),
+              title: const Text('Settings'),
               onTap: () {
                 setState(() {
                   _selectedIndex = 4;
-                  _isSidebarExpanded = false;
                 });
                 Navigator.pop(context);
               },
             ),
             ListTile(
-              leading: Icon(Icons.logout),
-              title: Text('Logout'),
+              leading: const Icon(Icons.logout),
+              title: const Text('Logout'),
               onTap: () {
                 _logout(context);
               },

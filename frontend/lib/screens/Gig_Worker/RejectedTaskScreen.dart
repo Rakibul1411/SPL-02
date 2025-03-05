@@ -23,7 +23,7 @@ class RejectedTaskScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Location: ${task.location}',
+              'Location: ${task.shopName}',
               style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ],

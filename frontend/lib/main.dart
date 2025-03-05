@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/screens/Company/CompanyHomeScreen.dart';
 import 'package:frontend/screens/Company/company_screen.dart';
+import 'package:frontend/screens/Company/create_task_screen.dart';
 import 'package:frontend/screens/Company/task_list_screen.dart';
 import 'package:frontend/screens/Gig_Worker/gig_worker_screen.dart';
 import 'package:frontend/screens/Profile/UpdatePasswordScreen.dart';
@@ -33,7 +33,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const GigWorkerScreen(userEmail: 'mdrakibul11611@gmail.com',),
+      home: const CompanyScreen(userEmail: 'bsse1411@iit.du.ac.bd'),
+      //home: const GigWorkerScreen(userEmail: 'mdrakibul11611@gmail.com'),
+      //home: const CreateTaskScreen(userEmail: 'bsse1411@iit.du.ac.bd',),
       debugShowCheckedModeBanner: false, // Or your home screen
     );
   }

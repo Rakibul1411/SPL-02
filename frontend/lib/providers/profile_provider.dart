@@ -1,26 +1,36 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'authProvider.dart';  // Import AuthProvider
 
-class ProfileProvider with ChangeNotifier {
+class ProfileProvider extends ChangeNotifier {
   String? name;
   String? email;
   String? role;
   bool? isVerified;
+  String? companyId;
   bool isLoading = false;
   String? errorMessage;
   final AuthProvider _authProvider = AuthProvider();
 
+  // Static method to provide the provider
+  static ChangeNotifierProvider<ProfileProvider> provider() {
+    return ChangeNotifierProvider<ProfileProvider>(
+      create: (_) => ProfileProvider(),
+    );
+  }
+
   // Provide a properly implemented userProfile getter
-  get userProfile {
+  Map<String, dynamic>? get userProfile {
     if (name == null && email == null && role == null) return null;
 
     return {
       'name': name,
       'email': email,
       'role': role,
-      'isVerified': isVerified
+      'isVerified': isVerified,
+      'companyId': companyId,
     };
   }
 
@@ -65,6 +75,7 @@ class ProfileProvider with ChangeNotifier {
         email = data['email'] ?? '';
         role = data['role'] ?? '';
         isVerified = data['isVerified'] ?? false;
+        companyId = data['companyId'] ?? '';
       } else {
         final errorData = json.decode(response.body);
         errorMessage = errorData['message'] ?? 'Failed to fetch user profile';
@@ -84,6 +95,7 @@ class ProfileProvider with ChangeNotifier {
     email = null;
     role = null;
     isVerified = null;
+    companyId = null;
     notifyListeners();
   }
 }

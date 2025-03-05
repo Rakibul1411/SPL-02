@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -125,5 +126,9 @@ class AuthProvider {
     // await clearToken(); // Clear any stored tokens
     // await clearUserData(); // Clear user data from local storage
   }
+
+  final authProvider = Provider<AuthProvider>((ref) {
+    return AuthProvider(); // Assuming AuthProvider is a class that handles authentication
+  });
 
 }

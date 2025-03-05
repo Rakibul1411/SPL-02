@@ -230,7 +230,7 @@ class _GigWorkerTaskListScreenState extends ConsumerState<NewTaskListScreen> {
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            task.location,
+                            task.shopName,
                             style: GoogleFonts.inter(
                               color: Colors.grey[600],
                               fontSize: 14,
