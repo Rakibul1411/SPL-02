@@ -12,6 +12,7 @@ import authRoute from './routes/auth.js';
 import taskRoute from './routes/task.js';
 import profileRoute from './routes/profileRoute.js';
 import reportRoute from './routes/report.js';
+import incentiveAndRatingRoute from './routes/incentive&ratingRoute.js';
 import dotenv from 'dotenv';
 
 // Task Assignment_test
@@ -59,6 +60,8 @@ mongoose.connect(process.env.MONGO_URI, {
 
     app.use('/report', reportRoute);
 
+    app.use('/incentive', incentiveAndRatingRoute);
+
     // Task Assignment_test
 //    app.use("/task_test", taskRouteTest);
 
@@ -73,4 +76,4 @@ mongoose.connect(process.env.MONGO_URI, {
 
 // Task Assignment_test
 // Initialize WebSocket
-initSocket(server);
+//initSocket(server);

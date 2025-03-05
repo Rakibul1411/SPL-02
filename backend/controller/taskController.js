@@ -109,9 +109,6 @@ export const deleteTask = async (req, res) => {
 };
 
 
-//import Incentive from "../models/Incentive.js";
-//import Rating from "../models/Rating.js";
-//import Task from "../models/Task.js";
 
 // Task completion handler
 export const completeTask = async (req, res) => {
