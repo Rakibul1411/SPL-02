@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fa330943-11eb-4a69-b8c9-147eb9adb4e4" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/frontend/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/pubspec.lock" afterDir="false" />
-    </list>
+    <list default="true" id="fa330943-11eb-4a69-b8c9-147eb9adb4e4" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -81,5 +79,10 @@
       <updated>1737379484824</updated>
     </task>
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="update" />
+    <MESSAGE value="commit by 1411" />
+    <option name="LAST_COMMIT_MESSAGE" value="commit by 1411" />
   </component>
 </project>
