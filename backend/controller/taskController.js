@@ -2,10 +2,21 @@ import Task from '../models/taskTable.js';
 import User from "../models/userTable.js";
 import { sendTaskEmailNotification } from "../utils/emailSender.js"; // Import email function
 
-// Fetch all tasks
-export const getAllTasks = async (req, res) => {
+// Fetch all tasks by company email
+export const getAllTasksByCompanyId = async (req, res) => {
   try {
-    const tasks = await Task.find();
+    const email = req.params.email; // Get email from query parameters
+
+    // Find the user by email to get the companyId
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Fetch all tasks that belong to the companyId
+    const tasks = await Task.find({ companyId: user._id });
+
     res.status(200).json(tasks);
   } catch (err) {
     console.error('Error fetching tasks:', err);
@@ -14,15 +25,28 @@ export const getAllTasks = async (req, res) => {
 };
 
 // Fetch tasks by Id or email
-export const getTasksById = async (req, res) => {
-  try {
-    const tasks = await Task.find();
-    res.status(200).json(tasks);
-  } catch (err) {
-    console.error('Error fetching tasks:', err);
-    res.status(500).json({ error: err.message });
-  }
-};
+  export const getTasksById = async (req, res) => {
+    try {
+      const email = req.params.email; // Get email from query parameters
+
+      console.log(email);
+
+      if (!email) {
+        return  res.status(400).json({ error: "Email is required" });
+      }
+
+     const tasks = await Task.find({
+     'selectedWorkers.email': email,
+      'acceptedByWorkers.email': { $ne: email },
+      'rejectedByWorkers.email': { $ne: email },
+     });
+
+      res.status(200).json(tasks);
+    } catch (err) {
+      console.error('Error fetching tasks:', err);
+      res.status(500).json({ error: err.message });
+    }
+  };
 
 // Haversine formula to calculate distance between two geo coordinates
 function calculateDistance(lat1, lon1, lat2, lon2) {

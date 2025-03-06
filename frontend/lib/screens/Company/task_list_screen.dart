@@ -3,20 +3,40 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/task_model.dart';
 import '../../providers/task_provider.dart';
 import 'create_task_screen.dart';
+import 'dart:async'; // Import Timer
 
 class TaskListScreen extends ConsumerStatefulWidget {
-  const TaskListScreen({super.key, required String userEmail});
+  final String userEmail;
+  const TaskListScreen({super.key, required  this.userEmail});
 
   @override
   ConsumerState<TaskListScreen> createState() => _TaskListScreenState();
 }
 
 class _TaskListScreenState extends ConsumerState<TaskListScreen> {
+  Timer? _timer; // Timer for live countdown
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(taskProvider.notifier).fetchTasks();
+      ref.read(taskProvider.notifier).fetchTasksByCompanyId(widget.userEmail);
+    });
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel(); // Cancel the timer when the widget is disposed
+    super.dispose();
+  }
+
+  // Start a timer to update the UI every second
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {}); // Rebuild the UI every second
+      }
     });
   }
 
@@ -68,11 +88,11 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CreateTaskScreen(task: task, userEmail: '',),
+        builder: (context) => CreateTaskScreen(task: task, userEmail: widget.userEmail,),
       ),
     ).then((result) {
       if (result == true) {
-        ref.read(taskProvider.notifier).fetchTasks(); // Refresh the task list
+        ref.read(taskProvider.notifier).fetchTasksByCompanyId(widget.userEmail); // Refresh the task list
       }
     });
   }
@@ -95,7 +115,7 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
               onPressed: () async {
                 Navigator.pop(context); // Close the dialog
                 await ref.read(taskProvider.notifier).deleteTask(task.id!);
-                ref.read(taskProvider.notifier).fetchTasks(); // Refresh the task list
+                ref.read(taskProvider.notifier).fetchTasksByCompanyId(widget.userEmail); // Refresh the task list
               },
               child: const Text('Yes'),
             ),
@@ -294,11 +314,11 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const CreateTaskScreen(userEmail: '',),
+                builder: (context) => CreateTaskScreen(userEmail: widget.userEmail,),
               ),
             );
             if (result == true) {
-              await ref.read(taskProvider.notifier).fetchTasks();
+              await ref.read(taskProvider.notifier).fetchTasksByCompanyId(widget.userEmail);
             }
           },
           elevation: 4,

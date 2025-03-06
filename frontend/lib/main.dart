@@ -34,9 +34,10 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       //home: const LaunchScreen(),
+      home: const CompanyScreen(userEmail: 'bsse1408@iit.du.ac.bd'),
       //home: const CompanyScreen(userEmail: 'bsse1411@iit.du.ac.bd'),
       //home: const ShopManagerScreen(userEmail: 'natiqaqif@gmail.com'),
-      home: const GigWorkerScreen(userEmail: 'mdrakibul11611@gmail.com'),
+      //home: const GigWorkerScreen(userEmail: 'rakibulislamnatiq@gmail.com'),
       //home: const CreateTaskScreen(userEmail: 'bsse1411@iit.du.ac.bd',),
       //home: const ResetPasswordScreen(email: 'email'),
       debugShowCheckedModeBanner: false, // Or your home screen

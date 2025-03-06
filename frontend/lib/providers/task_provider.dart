@@ -14,10 +14,10 @@ class TaskNotifier extends StateNotifier<List<Task>> {
   TaskNotifier() : super([]);
 
   // Fetch all tasks from the backend
-  Future<void> fetchTasks() async {
+  Future<void> fetchTasksByCompanyId(String userEmail) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/task/taskList/'),
+        Uri.parse('$baseUrl/task/taskListByCompanyId/$userEmail'),
       );
 
       if (response.statusCode == 200) {
@@ -32,10 +32,10 @@ class TaskNotifier extends StateNotifier<List<Task>> {
     }
   }
 
-  Future<void> fetchTasksById() async {
+  Future<void> fetchTasksById(String userEmail) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/task/taskList/'),
+        Uri.parse('$baseUrl/task/taskListById/$userEmail'),
       );
 
       if (response.statusCode == 200) {

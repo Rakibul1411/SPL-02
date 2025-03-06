@@ -9,7 +9,8 @@ import 'AcceptedTaskScreen.dart'; // Import the Accepted Task Screen
 import 'RejectedTaskScreen.dart'; // Import the Rejected Task Screen
 
 class NewTaskListScreen extends ConsumerStatefulWidget {
-  const NewTaskListScreen({super.key});
+  final String userEmail;
+  const NewTaskListScreen({super.key, required this.userEmail});
 
   @override
   ConsumerState<NewTaskListScreen> createState() => _GigWorkerTaskListScreenState();
@@ -22,7 +23,7 @@ class _GigWorkerTaskListScreenState extends ConsumerState<NewTaskListScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(taskProvider.notifier).fetchTasks();
+      ref.read(taskProvider.notifier).fetchTasksById(widget.userEmail);
     });
     // Start the timer to update the UI every second
     _startTimer();
@@ -122,10 +123,10 @@ class _GigWorkerTaskListScreenState extends ConsumerState<NewTaskListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/no_tasks.png', // Add a relevant illustration
-              width: 250,
-              height: 250,
+            Icon(
+              Icons.assignment_outlined,
+              size: 100,
+              color: Colors.grey[400],
             ),
             const SizedBox(height: 16),
             Text(
@@ -138,8 +139,7 @@ class _GigWorkerTaskListScreenState extends ConsumerState<NewTaskListScreen> {
             ),
           ],
         ),
-      )
-          : ListView.builder(
+      ) : ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         itemCount: tasks.length,
         itemBuilder: (context, index) {

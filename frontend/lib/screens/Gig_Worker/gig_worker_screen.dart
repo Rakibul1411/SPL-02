@@ -53,7 +53,7 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
         value: _profileProvider,
         child: ProfileDetailsScreen(userEmail: widget.userEmail),
       ),
-      const NewTaskListScreen(),
+      NewTaskListScreen(userEmail: widget.userEmail,),
       _buildSettingsScreen(),
       const ReportSubmissionScreen(taskId: '1', workerId: '1'),
       UpdateProfileScreen(userEmail: widget.userEmail),
@@ -419,7 +419,7 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const NewTaskListScreen(),
+                          builder: (context) => NewTaskListScreen(userEmail: widget.userEmail,),
                         ),
                       );
                     },
