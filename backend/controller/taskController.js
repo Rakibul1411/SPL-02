@@ -2,6 +2,107 @@ import Task from '../models/taskTable.js';
 import User from "../models/userTable.js";
 import { sendTaskEmailNotification } from "../utils/emailSender.js"; // Import email function
 
+export const tasksAcceptedByWorkers = async (req, res) => {
+  try {
+    const { id } = req.params; // Task ID
+    const email = req.params.email; // Worker email
+
+    // Find the task by ID
+    const task = await Task.findById(id);
+
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    // Check if the email exists in selectedWorkers
+    const selectedWorker = task.selectedWorkers.find(worker => worker.email === email);
+
+    if (!selectedWorker) {
+      return res.status(404).json({ error: 'Worker not found in selectedWorkers' });
+    }
+
+    // Check if the worker is already in acceptedByWorkers
+    const isAlreadyAccepted = task.acceptedByWorkers.some(worker => worker.email === email);
+
+    if (isAlreadyAccepted) {
+      return res.status(400).json({ error: 'Worker already accepted the task' });
+    }
+
+    // Check if the worker is in rejectedByWorkers
+    const isRejected = task.rejectedByWorkers.some(worker => worker.email === email);
+
+    if (isRejected) {
+      // Remove the worker from rejectedByWorkers
+      task.rejectedByWorkers = task.rejectedByWorkers.filter(worker => worker.email !== email);
+    }
+
+    // Add the worker to the acceptedByWorkers array
+    task.acceptedByWorkers.push({
+      workerId: selectedWorker.workerId,
+      email: selectedWorker.email,
+    });
+
+    // Save the updated task
+    await task.save();
+
+    res.status(200).json({ message: 'Worker accepted the task successfully', task });
+  } catch (err) {
+    console.error('Error accepting task:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const tasksRejectedByWorkers = async (req, res) => {
+  try {
+    const { id } = req.params; // Task ID
+    const email = req.params.email; // Worker email
+
+    // Find the task by ID
+    const task = await Task.findById(id);
+
+    console.log(task);
+
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    // Check if the email exists in selectedWorkers
+    const selectedWorker = task.selectedWorkers.find(worker => worker.email === email);
+
+    if (!selectedWorker) {
+      return res.status(404).json({ error: 'Worker not found in selectedWorkers' });
+    }
+
+    const isAlreadyRejected = task.rejectedByWorkers.some(worker => worker.email === email);
+
+    if (isAlreadyRejected) {
+      return res.status(400).json({ error: 'Worker already rejected the task' });
+    }
+
+    // Check if the worker is in rejectedByWorkers
+    const isAccepted = task.acceptedByWorkers.some(worker => worker.email === email);
+
+    if (isAccepted) {
+      // Remove the worker from rejectedByWorkers
+      task.rejectedByWorkers = task.acceptedByWorkers.filter(worker => worker.email !== email);
+    }
+
+    // Add the worker to the acceptedByWorkers array
+    task.rejectedByWorkers.push({
+      workerId: selectedWorker.workerId,
+      email: selectedWorker.email,
+    });
+
+    // Save the updated task
+    await task.save();
+
+    res.status(200).json({ message: 'Worker rejected the task successfully', task });
+  } catch (err) {
+    console.error('Error accepting task:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // Fetch all tasks by company email
 export const getAllTasksByCompanyId = async (req, res) => {
   try {
@@ -249,10 +350,10 @@ export const createTask = async (req, res) => {
 
 // Update a task
 export const updateTask = async (req, res) => {
-  const { id } = req.params; // Extract the task ID from the URL
+  const { id } = req.params;
   const { title, description, shopName, incentive, deadline, status, latitude, longitude } = req.body;
 
-console.log(id);
+  console.log(id);
 
   try {
     // Validate the deadline field
