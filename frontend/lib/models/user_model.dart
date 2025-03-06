@@ -4,6 +4,8 @@ class User {
   final String password;
   final String role;
   final bool isVerified;
+  final double latitude;
+  final double longitude;
 
   User({
     required this.name,
@@ -11,6 +13,8 @@ class User {
     required this.password,
     required this.role,
     required this.isVerified,
+    required this.latitude,
+    required this.longitude,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -20,6 +24,8 @@ class User {
       password: json['password'],
       role: json['role'],
       isVerified: json['isVerified'],
+      latitude: json['latitude'],
+      longitude: json['longitude'],
     );
   }
 }

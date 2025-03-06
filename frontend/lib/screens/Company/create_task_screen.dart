@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart';
 import '../../models/task_model.dart';
 import '../../providers/task_provider.dart';
+import '../../providers/user_provider.dart'; // Assuming you have a user provider
 import 'task_list_screen.dart';
+import '../Map/map_screen.dart'; // Import the map screen
 
 class CreateTaskScreen extends ConsumerStatefulWidget {
   final Task? task; // Make the task parameter optional
+  final String userEmail; // Add userEmail parameter
 
-  const CreateTaskScreen({super.key, this.task});
+  const CreateTaskScreen({super.key, this.task, required this.userEmail});
 
   @override
   _CreateTaskScreenState createState() => _CreateTaskScreenState();
@@ -17,9 +21,10 @@ class _CreateTaskScreenState extends ConsumerState<CreateTaskScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _locationController = TextEditingController();
+  final _shopNameController = TextEditingController();
   final _incentiveController = TextEditingController();
   DateTime? _deadline;
+  LatLng? _selectedLocation; // Store selected location
 
   @override
   void initState() {
@@ -28,9 +33,10 @@ class _CreateTaskScreenState extends ConsumerState<CreateTaskScreen> {
       // Pre-fill the form if editing an existing task
       _titleController.text = widget.task!.title;
       _descriptionController.text = widget.task!.description;
-      _locationController.text = widget.task!.location;
+      _shopNameController.text = widget.task!.shopName;
       _incentiveController.text = widget.task!.incentive.toString();
       _deadline = widget.task!.deadline;
+      _selectedLocation = LatLng(widget.task!.latitude, widget.task!.longitude);
     }
   }
 
@@ -112,26 +118,63 @@ class _CreateTaskScreenState extends ConsumerState<CreateTaskScreen> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildInputCard(
-                                child: TextFormField(
-                                  controller: _locationController,
-                                  decoration: _buildInputDecoration(
-                                    'Location',
-                                    Icons.location_on_outlined,
-                                  ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Required';
-                                    }
-                                    return null;
-                                  },
+                        _buildInputCard(
+                          child: TextFormField(
+                            controller: _shopNameController,
+                            decoration: _buildInputDecoration(
+                              'Shop Name',
+                              Icons.store,
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a shop name';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        _buildInputCard(
+                          child: InkWell(
+                            onTap: () async {
+                              final location = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const MapScreen(),
                                 ),
+                              );
+                              if (location != null) {
+                                setState(() {
+                                  _selectedLocation = location;
+                                });
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.location_on_outlined,
+                                      color: Colors.indigo.shade400),
+                                  const SizedBox(width: 16),
+                                  Text(
+                                    _selectedLocation == null
+                                        ? 'Select Location'
+                                        : 'Lat: ${_selectedLocation!.latitude}, Lng: ${_selectedLocation!.longitude}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: _selectedLocation == null
+                                          ? Colors.grey
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 20),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
                             Expanded(
                               child: _buildInputCard(
                                 child: TextFormField(
@@ -253,42 +296,96 @@ class _CreateTaskScreenState extends ConsumerState<CreateTaskScreen> {
     );
   }
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate() && _deadline != null) {
-      final newTask = Task(
-        id: widget.task?.id, // Include the ID if editing
-        title: _titleController.text,
-        description: _descriptionController.text,
-        location: _locationController.text,
-        incentive: double.parse(_incentiveController.text),
-        deadline: _deadline!,
-        status: widget.task?.status ?? 'pending',
-      );
+  void _submitForm() async {
+    if (_formKey.currentState!.validate() && _deadline != null && _selectedLocation != null) {
+      try {
+        await ref.read(profileProvider.notifier).fetchUserProfile(widget.userEmail);
 
-      if (widget.task == null) {
-        // Create a new task
-        ref.read(taskProvider.notifier).createTask(newTask).then((_) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const TaskListScreen()),
-          );
-        }).catchError((error) {
-          print('Error creating task: $error');
-        });
-      } else {
-        // Update an existing task
-        ref.read(taskProvider.notifier).updateTask(newTask).then((_) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const TaskListScreen()),
-          );
-        }).catchError((error) {
-          print('Error updating task: $error');
-        });
+        // Fetch the profile state directly from the provider
+        final profileState = ref.read(profileProvider);
+
+        print('state: $profileState');
+
+        // Retrieve the company ID from the profile state
+        final companyId = profileState.id;
+
+        print('id: $companyId');
+
+        if (companyId == null || companyId.isEmpty) {
+          // First, attempt to fetch the user profile
+          await ref.read(profileProvider.notifier).fetchUserProfile(widget.userEmail);
+
+          // Re-read the profile state after fetching
+          final updatedProfileState = ref.read(profileProvider);
+          print(updatedProfileState);
+          final updatedCompanyId = updatedProfileState.id;
+
+          print('companyId: $updatedCompanyId');
+
+          if (updatedCompanyId == null || updatedCompanyId.isEmpty) {
+            // Show an error dialog if no ID is found
+            _showErrorDialog('Unable to retrieve your profile information. Please try again.');
+            return;
+          }
+        }
+
+        final newTask = Task(
+          id: widget.task?.id,
+          title: _titleController.text,
+          description: _descriptionController.text,
+          shopName: _shopNameController.text,
+          incentive: double.parse(_incentiveController.text),
+          deadline: _deadline!,
+          status: widget.task?.status ?? 'pending',
+          companyId: companyId!, // Use the retrieved company ID
+          latitude: _selectedLocation!.latitude,
+          longitude: _selectedLocation!.longitude,
+          selectedWorkers: [],
+          acceptedByWorkers: [],
+          rejectedByWorkers: [],
+        );
+
+        if (widget.task == null) {
+          // Create a new task
+          await ref.read(taskProvider.notifier).createTask(newTask);
+        } else {
+          // Update an existing task
+          await ref.read(taskProvider.notifier).updateTask(newTask);
+        }
+
+        // Navigate to TaskListScreen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => TaskListScreen(
+                  userEmail: widget.userEmail)
+          ),
+        );
+
+      } catch (error) {
+        // Handle any errors during task creation
+        _showErrorDialog('Failed to create/update task: $error');
       }
     } else {
-      print('Validation failed or deadline not selected');
+      _showErrorDialog('Please fill in all required fields and select a location and deadline.');
     }
+  }
+
+  // New helper method to show error dialogs
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Okay'),
+          )
+        ],
+      ),
+    );
   }
 
   Future<void> _selectDeadline() async {

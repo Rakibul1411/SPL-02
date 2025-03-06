@@ -1,18 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:image/image.dart' as img; // Image package for resizing
+import 'package:image/image.dart' as img;
 import '../models/report.dart';
 
 class ReportService {
-  final String baseUrl = 'http://192.168.0.101:3005'; // Replace with your correct IP
+  final String baseUrl = 'http://192.168.0.101:3005'; // Replace with actual API URL
 
   Future<Report> submitReport({
     required String taskId,
     required String workerId,
     required String reportText,
-    File? image,
-    String? fileUrl, // Add this parameter
+    List<File>? images,
+    List<File>? files,
   }) async {
     try {
       final request = http.MultipartRequest(
@@ -23,40 +23,34 @@ class ReportService {
       request.fields['taskId'] = taskId;
       request.fields['workerId'] = workerId;
       request.fields['reportText'] = reportText;
-      request.fields['submittedAt'] = DateTime.now().toIso8601String();
-      if (fileUrl != null) {
-        request.fields['fileUrl'] = fileUrl; // Add fileUrl to the request
+
+      // Attach compressed images
+      if (images != null) {
+        for (var image in images) {
+          File compressedImage = await _compressImage(image);
+          request.files.add(
+            await http.MultipartFile.fromPath('images', compressedImage.path),
+          );
+        }
       }
 
-      if (image != null) {
-        // Compress image before uploading
-        File compressedImage = await _compressImage(image);
-
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'image',
-            compressedImage.path,
-          ),
-        );
+      // Attach files (PDF, DOCX, etc.)
+      if (files != null) {
+        for (var file in files) {
+          request.files.add(
+            await http.MultipartFile.fromPath('files', file.path),
+          );
+        }
       }
 
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
-
       final decodedResponse = jsonDecode(responseBody);
 
       if (response.statusCode == 201 && decodedResponse["success"] == true) {
-        return Report.fromJson({
-          "reportId": decodedResponse["report"]["reportId"] ?? '',
-          "taskId": decodedResponse["report"]["taskId"] ?? '',
-          "workerId": decodedResponse["report"]["workerId"] ?? '',
-          "reportText": decodedResponse["report"]["reportText"] ?? '',
-          "imageUrl": decodedResponse["report"]["imageUrl"] ?? '',
-          "fileUrl": decodedResponse["report"]["fileUrl"] ?? '', // Add this field
-          "submittedAt": decodedResponse["report"]["submittedAt"] ?? '',
-        });
+        return Report.fromJson(decodedResponse["report"]);
       } else {
-        throw Exception('Report submission failed. ${decodedResponse["message"] ?? "Unknown error"}');
+        throw Exception('Report submission failed: ${decodedResponse["message"]}');
       }
     } catch (e) {
       print('Detailed submission error: $e');
@@ -64,7 +58,7 @@ class ReportService {
     }
   }
 
-  // New method for uploading general files (e.g., PDFs)
+  // Method for uploading a single file (e.g., PDF, DOCX)
   Future<String> uploadFile(File file) async {
     try {
       final request = http.MultipartRequest(
@@ -81,13 +75,12 @@ class ReportService {
 
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
-
       final decodedResponse = jsonDecode(responseBody);
 
       if (response.statusCode == 201 && decodedResponse["success"] == true) {
         return decodedResponse["fileUrl"];
       } else {
-        throw Exception('File upload failed. ${decodedResponse["message"] ?? "Unknown error"}');
+        throw Exception('File upload failed: ${decodedResponse["message"]}');
       }
     } catch (e) {
       print('Detailed file upload error: $e');
@@ -97,14 +90,18 @@ class ReportService {
 
   // Image compression function
   Future<File> _compressImage(File file) async {
-    final img.Image? image = img.decodeImage(await file.readAsBytes());
-    if (image == null) return file;
+    try {
+      final img.Image? image = img.decodeImage(await file.readAsBytes());
+      if (image == null) return file;
 
-    final img.Image resized = img.copyResize(image, width: 800);
+      final img.Image resized = img.copyResize(image, width: 800);
+      final compressedFile = File(file.path.replaceAll('.jpg', '_compressed.jpg'))
+        ..writeAsBytesSync(img.encodeJpg(resized, quality: 70));
 
-    final compressedFile = File(file.path.replaceAll('.jpg', '_compressed.jpg'))
-      ..writeAsBytesSync(img.encodeJpg(resized, quality: 70));
-
-    return compressedFile;
+      return compressedFile;
+    } catch (e) {
+      print('Image compression failed: $e');
+      return file;
+    }
   }
 }

@@ -32,6 +32,7 @@ export const sendOTP = async (email, otp) => {
   }
 };
 
+
 // 📌 ✅ Function to send task email notification
 export const sendTaskEmailNotification = async (emails, task) => {
   try {
@@ -55,5 +56,5 @@ export const sendTaskEmailNotification = async (emails, task) => {
     console.log("📧 Task notification email sent to gig workers!");
   } catch (error) {
         console.error("Failed to send task email notification:", error);
-      }
-    };
+    }
+};

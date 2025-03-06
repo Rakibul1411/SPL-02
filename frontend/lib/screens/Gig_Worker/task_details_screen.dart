@@ -72,7 +72,7 @@ class TaskDetailsScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  task.location,
+                  task.shopName,
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontSize: 14,

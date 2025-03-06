@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 //import bcrypt from 'bcryptjs';
 import bcrypt from 'bcrypt';
 
-// Define the schema
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -28,7 +27,7 @@ const userSchema = new mongoose.Schema(
     },
     isVerified: {
         type: Boolean,
-        default: false // Defaults to false until OTP is verified
+        default: false
     },
     otp: {
         type: String
@@ -36,10 +35,16 @@ const userSchema = new mongoose.Schema(
     otpExpiry: {
         type: Date
     },
-  }, 
-  
+    latitude: {
+        type: Number,
+        required: true
+    },
+    longitude: {
+        type: Number,
+        required: true
+    }
+  },
   { timestamps: true }
-  
 );
 
 const User = mongoose.model('User', userSchema);

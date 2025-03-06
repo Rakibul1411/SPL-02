@@ -7,6 +7,7 @@ import {
   sendOtpForPasswordReset,
   verifyPasswordResetOTP,
   resetPassword,
+  updatePassword
 } from '../controller/authController.js';
 
 const router = express.Router();
@@ -26,5 +27,9 @@ router.post('/resend-otp', resendOTP);
 router.post('/send-password-reset-otp', sendOtpForPasswordReset);
 router.post('/verify-password-reset-otp', verifyPasswordResetOTP);
 router.post('/reset-password', resetPassword);
+
+// Add this to your routes in auth.js
+router.post('/update-password', updatePassword);
+
 
 export default router;

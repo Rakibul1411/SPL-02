@@ -3,8 +3,8 @@ class Report {
   final String taskId;
   final String workerId;
   final String reportText;
-  final String? imageUrl;
-  final String? fileUrl; // Add this field
+  final List<String>? imageUrls;
+  final List<String>? fileUrls;
   final DateTime submittedAt;
   final double? reportRating;
 
@@ -13,24 +13,24 @@ class Report {
     required this.taskId,
     required this.workerId,
     required this.reportText,
-    this.imageUrl,
-    this.fileUrl, // Add this field
+    this.imageUrls,
+    this.fileUrls,
     required this.submittedAt,
     this.reportRating,
   });
 
-  Map<String, dynamic> toJson() {
-    return {
-      'reportId': reportId,
-      'taskId': taskId,
-      'workerId': workerId,
-      'reportText': reportText,
-      'imageUrl': imageUrl,
-      'fileUrl': fileUrl, // Add this field
-      'submittedAt': submittedAt.toIso8601String(),
-      'reportRating': reportRating,
-    };
-  }
+  // Map<String, dynamic> toJson() {
+  //   return {
+  //     'reportId': reportId,
+  //     'taskId': taskId,
+  //     'workerId': workerId,
+  //     'reportText': reportText,
+  //     'imageUrl': imageUrl,
+  //     'fileUrl': fileUrl, // Add this field
+  //     'submittedAt': submittedAt.toIso8601String(),
+  //     'reportRating': reportRating,
+  //   };
+  // }
 
   factory Report.fromJson(Map<String, dynamic> json) {
     return Report(
@@ -38,8 +38,8 @@ class Report {
       taskId: json['taskId'],
       workerId: json['workerId'],
       reportText: json['reportText'],
-      imageUrl: json['imageUrl'],
-      fileUrl: json['fileUrl'], // Add this field
+      imageUrls: List<String>.from(json['imageUrls'] ?? []),
+      fileUrls: List<String>.from(json['fileUrls'] ?? []),
       submittedAt: DateTime.parse(json['submittedAt']),
       reportRating: json['reportRating']?.toDouble(),
     );

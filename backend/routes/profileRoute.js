@@ -1,9 +1,12 @@
 import express from 'express';
-import { getProfile } from '../controller/profileController.js'
+import { getProfile, updateProfile } from '../controller/profileController.js';
 
 const router = express.Router();
 
-// Profile route
-router.get('/profile', getProfile);
+// Changed to use query parameter instead of path parameter
+router.get('/getProfile/:email', getProfile);
+
+// Update user profile
+router.put('/updateProfile', updateProfile);
 
 export default router;

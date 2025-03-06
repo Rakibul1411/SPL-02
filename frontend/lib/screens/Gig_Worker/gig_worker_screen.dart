@@ -1,125 +1,521 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'gig_worker_task_list_screen.dart';
-import 'profile_details_screen.dart';
+import 'package:provider/provider.dart' as provider;
+import '../OtherScreens/launch_page_screen.dart';
+import 'new_task_list_screen.dart';
+import '../Profile/profile_details_screen.dart';
+import '../Report/report_submission_screen.dart';
+import '../../providers/profile_provider.dart';
+import '../../providers/authProvider.dart';
+import 'PendingTaskScreen.dart';
+import 'FinishedTaskScreen.dart';
+import 'DeadlinePassedTaskScreen.dart';
+import 'RejectedTaskScreen.dart';
+import 'AcceptedTaskScreen.dart';
+import '../../models/task_model.dart';
+import '../Profile/UpdatePasswordScreen.dart';
+import '../Profile/UpdateProfileScreen.dart';
 
 class GigWorkerScreen extends ConsumerStatefulWidget {
-  const GigWorkerScreen({super.key});
+  final String userEmail;
+
+  const GigWorkerScreen({super.key, required this.userEmail});
 
   @override
   ConsumerState<GigWorkerScreen> createState() => _GigWorkerScreenState();
 }
 
 class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
-  int _selectedIndex = 0;
-  bool _isSidebarExpanded = false; // Controls sidebar state
+  int _selectedIndex = 5; // Welcome screen
+  String _userName = "";
+  bool _isLoading = true;
 
-  final List<Widget> _screens = [
-    const GigWorkerTaskListScreen(),
-    const ProfileDetailsScreen(),
+  late final List<Widget> _screens;
+  late final ProfileProvider _profileProvider;
+
+  final List<String> _screenTitles = [
+    'Profile Details',
+    'Tasks',
+    'Settings',
+    'Report',
+    'Update Profile',
+    'Welcome', // Added welcome screen title
   ];
 
-  final List<NavigationRailDestination> _sidebarDestinations = [
-    const NavigationRailDestination(
-      icon: Icon(Icons.task_outlined),
-      selectedIcon: Icon(Icons.task),
-      label: Text('Tasks'),
-    ),
-    const NavigationRailDestination(
-      icon: Icon(Icons.person_outline),
-      selectedIcon: Icon(Icons.person),
-      label: Text('Profile'),
-    ),
-    const NavigationRailDestination(
-      icon: Icon(Icons.settings_outlined),
-      selectedIcon: Icon(Icons.settings),
-      label: Text('Settings'),
-    ),
-    const NavigationRailDestination(
-      icon: Icon(Icons.report_outlined),
-      selectedIcon: Icon(Icons.report),
-      label: Text('Report'),
-    ),
-    const NavigationRailDestination(
-      icon: Icon(Icons.logout),
-      selectedIcon: Icon(Icons.logout),
-      label: Text('Logout'),
-    ),
-  ];
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  void _logout(BuildContext context) {
-    Navigator.pushReplacementNamed(context, '/login');
+  @override
+  void initState() {
+    super.initState();
+    _profileProvider = ProfileProvider();
+    _screens = [
+      provider.ChangeNotifierProvider.value(
+        value: _profileProvider,
+        child: ProfileDetailsScreen(userEmail: widget.userEmail),
+      ),
+      NewTaskListScreen(userEmail: widget.userEmail,),
+      _buildSettingsScreen(),
+      const ReportSubmissionScreen(taskId: '1', workerId: '1'),
+      UpdateProfileScreen(userEmail: widget.userEmail),
+      _buildWelcomeScreen(), // Added welcome screen
+    ];
+
+    // Fetch user name when the screen initializes
+    _fetchUserName();
+  }
+
+  // Build welcome screen
+  Widget _buildWelcomeScreen() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.blue.shade700, Colors.purple.shade700],
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.person_outline,
+              size: 100,
+              color: Colors.white,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Welcome Back $_userName',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Logged in as: ${widget.userEmail}',
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.white70,
+              ),
+            ),
+            const SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _selectedIndex = 0; // Navigate to Profile Details
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              child: const Text(
+                'View Profile Details',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Method to fetch user name from database
+  Future<void> _fetchUserName() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _profileProvider.fetchUserProfile(widget.userEmail);
+
+      setState(() {
+        _userName = _profileProvider.name ?? widget.userEmail;
+        _isLoading = false;
+      });
+    } catch (error) {
+      print('Error fetching user name: $error');
+      setState(() {
+        _userName = widget.userEmail; // Fallback to email if fetching fails
+        _isLoading = false;
+      });
+    }
+  }
+
+  // Method to handle logout
+  void _logout(BuildContext context) async {
+    final authProvider = AuthProvider();
+    try {
+      await authProvider.logout();
+      // Redirect to the LaunchScreen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const LaunchScreen(),
+        ),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Logout failed: $error')),
+      );
+    }
+  }
+
+  // Build the Settings screen with ExpansionTile
+  Widget _buildSettingsScreen() {
+    return ListView(
+      children: [
+        Card(
+          margin: const EdgeInsets.all(8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          elevation: 4,
+          child: ExpansionTile(
+            leading: const Icon(Icons.settings_outlined, color: Colors.blue),
+            title: const Text(
+              'Settings',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            children: [
+              ListTile(
+                leading: const Icon(Icons.password, color: Colors.green),
+                title: const Text('Update Password'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UpdatePasswordScreen(userEmail: widget.userEmail),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.account_circle, color: Colors.orange),
+                title: const Text('Update Profile'),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 4; // Navigate to Update Profile screen
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    // Dummy task for testing
+    final dummyTask = Task(
+      id: '1',
+      title: 'Sample Task',
+      description: 'This is a sample task.',
+      shopName: 'Sample Location',
+      deadline: DateTime.now().add(const Duration(days: 1)),
+      status: 'pending',
+      incentive: 10, companyId: 'iii', latitude: 0.0, longitude: 0.0, selectedWorkers: [], acceptedByWorkers: [], rejectedByWorkers: [],
+    );
+
+    // Determine the appropriate leading icon
+    Widget? leadingIcon;
+
+    // If on Welcome screen, show menu icon
+    if (_selectedIndex == 5) {
+      leadingIcon = IconButton(
+        icon: const Icon(Icons.menu, color: Colors.white),
+        onPressed: () {
+          _scaffoldKey.currentState?.openDrawer();
+        },
+      );
+    }
+    // For other screens, show back button that returns to Welcome screen
+    else {
+      leadingIcon = IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () {
+          setState(() {
+            _selectedIndex = 5; // Return to Welcome screen
+          });
+        },
+      );
+    }
+
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
-        title: const Text('Gig Worker Dashboard'),
+        title: Text(
+          _screenTitles[_selectedIndex],
+          style: const TextStyle(color: Colors.white),
+        ),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.blue.shade700,
         elevation: 2,
+        leading: leadingIcon,
       ),
-      body: Row(
-        children: [
-          NavigationRail(
-            backgroundColor: Colors.grey[100],
-            extended: _isSidebarExpanded, // Sidebar expand/collapse
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (index) {
-              if (index == 4) {
-                _logout(context); // Handle logout
-                return;
-              }
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-            labelType: _isSidebarExpanded
-                ? NavigationRailLabelType.none
-                : NavigationRailLabelType.all,
-            leading: Column(
-              children: [
-                const SizedBox(height: 20),
-                IconButton(
-                  icon: Icon(
-                    _isSidebarExpanded ? Icons.arrow_back : Icons.menu,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _isSidebarExpanded = !_isSidebarExpanded;
-                    });
-                  },
+      drawer: Drawer(
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.blue.shade700, Colors.purple.shade700],
+            ),
+          ),
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              UserAccountsDrawerHeader(
+                decoration: const BoxDecoration(
+                  color: Colors.transparent,
                 ),
-                const SizedBox(height: 20),
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.blue.withOpacity(0.1),
-                  child: const Icon(
+                accountName: _isLoading
+                    ? const CircularProgressIndicator(
+                  color: Colors.white,
+                )
+                    : Text(
+                  _userName,
+                  style: const TextStyle(fontSize: 20, color: Colors.white),
+                ),
+                accountEmail: Text(
+                  widget.userEmail,
+                  style: const TextStyle(color: Colors.white70),
+                ),
+                currentAccountPicture: const CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: Icon(
                     Icons.person,
-                    size: 30,
                     color: Colors.blue,
                   ),
                 ),
-                const SizedBox(height: 10),
-                if (_isSidebarExpanded)
-                  const Text(
-                    'Gig Worker',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+              ),
+              ListTile(
+                leading: const Icon(Icons.home_outlined, color: Colors.white),
+                title: const Text(
+                  'Welcome',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 5; // Navigate to Welcome screen
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.person_outline, color: Colors.white),
+                title: const Text(
+                  'Profile Details',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 0;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ExpansionTile(
+                leading: const Icon(Icons.task_outlined, color: Colors.white),
+                title: const Text(
+                  'Tasks',
+                  style: TextStyle(color: Colors.white),
+                ),
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.pending_actions, color: Colors.white),
+                    title: const Text(
+                      'Pending Tasks',
+                      style: TextStyle(color: Colors.white),
                     ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PendingTasksScreen(),
+                        ),
+                      );
+                    },
                   ),
-              ],
-            ),
-            destinations: _sidebarDestinations,
+                  ListTile(
+                    leading: const Icon(Icons.done_all, color: Colors.white),
+                    title: const Text(
+                      'Finished Tasks',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FinishedTasksScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.timer_off, color: Colors.white),
+                    title: const Text(
+                      'Deadline Passed Tasks',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DeadlinePassedTasksScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.cancel, color: Colors.white),
+                    title: const Text(
+                      'Rejected Tasks',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RejectedTaskScreen(task: dummyTask),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.check_circle, color: Colors.white),
+                    title: const Text(
+                      'Accepted Tasks',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AcceptedTaskScreen(task: dummyTask),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.add_task, color: Colors.white),
+                    title: const Text(
+                      'New Task',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => NewTaskListScreen(userEmail: widget.userEmail,),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              ExpansionTile(
+                leading: const Icon(Icons.settings_outlined, color: Colors.white),
+                title: const Text(
+                  'Settings',
+                  style: TextStyle(color: Colors.white),
+                ),
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.password, color: Colors.white),
+                    title: const Text(
+                      'Update Password',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UpdatePasswordScreen(userEmail: widget.userEmail),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.account_circle, color: Colors.white),
+                    title: const Text(
+                      'Update Profile',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UpdateProfileScreen(userEmail: widget.userEmail),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              ListTile(
+                leading: const Icon(Icons.report_outlined, color: Colors.white),
+                title: const Text(
+                  'Report',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 3;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.white),
+                title: const Text(
+                  'Logout',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  _logout(context);
+                },
+              ),
+            ],
           ),
-          const VerticalDivider(thickness: 1, width: 1),
+        ),
+      ),
+      body: Row(
+        children: [
           Expanded(
+            flex: 4,
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
-              child: _screens[_selectedIndex],
+              child: _selectedIndex == 1
+                  ? Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.6),
+                      spreadRadius: 5,
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.all(16),
+                child: _screens[_selectedIndex],
+              )
+                  : _screens[_selectedIndex],
             ),
           ),
         ],

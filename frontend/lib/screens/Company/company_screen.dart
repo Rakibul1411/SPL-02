@@ -1,147 +1,402 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart' as provider;
+import '../OtherScreens/launch_page_screen.dart';
+import '../Profile/profile_details_screen.dart';
 import 'create_task_screen.dart';
 import 'task_list_screen.dart';
+import '../../providers/profile_provider.dart';
+import '../../providers/authProvider.dart';
+import '../Profile/UpdatePasswordScreen.dart'; // Import UpdatePasswordScreen
+import '../Profile/UpdateProfileScreen.dart'; // Import UpdateProfileScreen
 
 class CompanyScreen extends ConsumerStatefulWidget {
-  const CompanyScreen({super.key});
+  final String userEmail;
+
+  const CompanyScreen({super.key, required this.userEmail});
 
   @override
   _CompanyScreenState createState() => _CompanyScreenState();
 }
 
 class _CompanyScreenState extends ConsumerState<CompanyScreen> {
-  int _selectedIndex = 0; // Index for selected sidebar item
-  bool _isSidebarExpanded = false; // Sidebar expanded state
+  int _selectedIndex = 5;
+  bool _isSidebarExpanded = false;
+  String _companyName = "";
+  bool _isLoading = true;
 
-  final List<Widget> _screens = [
-    const CreateTaskScreen(), // Create Task Screen
-    const TaskListScreen(), // All Tasks Screen
-    const Center(child: Text('Gig Worker Report List')), // Placeholder for Gig Worker Report
-    const Center(child: Text('Company Details')), // Placeholder for Company Details
-    const Center(child: Text('Settings')), // Placeholder for Settings
-  ];
+  late final List<Widget> _screens;
+  late final ProfileProvider _profileProvider;
 
-  final List<String> _appBarTitles = [
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  final List<String> _screenTitles = [
     'Create Task',
     'All Tasks',
     'Gig Worker Report List',
     'Company Details',
     'Settings',
+    'Welcome',
   ];
 
-  void _logout(BuildContext context) {
-    Navigator.pushReplacementNamed(context, '/login');
+  @override
+  void initState() {
+    super.initState();
+    _profileProvider = ProfileProvider();
+    _screens = [
+      CreateTaskScreen(userEmail: widget.userEmail),
+      TaskListScreen(userEmail: widget.userEmail),
+      const Center(child: Text('Gig Worker Report List')),
+      provider.ChangeNotifierProvider.value(
+        value: _profileProvider,
+        child: ProfileDetailsScreen(userEmail: widget.userEmail),
+      ),
+      _buildSettingsScreen(), // Updated to include sub-modules
+      _buildWelcomeScreen(),
+    ];
+    _fetchCompanyDetails();
   }
 
-  void _toggleSidebar() {
+  Widget _buildWelcomeScreen() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.blue.shade700, Colors.purple.shade700],
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.business,
+              size: 100,
+              color: Colors.white,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Welcome Back $_companyName',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Logged in as: ${widget.userEmail}',
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.white70,
+              ),
+            ),
+            const SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _selectedIndex = 0;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              child: const Text(
+                'Create Your First Task',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Build the Settings screen with ExpansionTile
+  Widget _buildSettingsScreen() {
+    return ListView(
+      children: [
+        Card(
+          margin: const EdgeInsets.all(8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          elevation: 4,
+          child: ExpansionTile(
+            leading: const Icon(Icons.settings_outlined, color: Colors.blue),
+            title: const Text(
+              'Settings',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            children: [
+              ListTile(
+                leading: const Icon(Icons.password, color: Colors.green),
+                title: const Text('Update Password'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UpdatePasswordScreen(userEmail: widget.userEmail),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.account_circle, color: Colors.orange),
+                title: const Text('Update Profile'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UpdateProfileScreen(userEmail: widget.userEmail),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _fetchCompanyDetails() async {
     setState(() {
-      _isSidebarExpanded = !_isSidebarExpanded;
+      _isLoading = true;
     });
+
+    try {
+      await _profileProvider.fetchUserProfile(widget.userEmail);
+      setState(() {
+        _companyName = _profileProvider.name ?? "Company Name";
+        _isLoading = false;
+      });
+    } catch (error) {
+      print('Error fetching company details: $error');
+      setState(() {
+        _companyName = "Company Name";
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _logout(BuildContext context) async {
+    final authProvider = AuthProvider();
+    try {
+      await authProvider.logout();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const LaunchScreen(),
+        ),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Logout failed: $error')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(_appBarTitles[_selectedIndex]),
-        backgroundColor: Colors.blue,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: const Text('Notifications'),
-                    content: const Text('You have no new notifications.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('OK'),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context),
-          ),
-        ],
+        title: Text(
+          _screenTitles[_selectedIndex],
+          style: const TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.blue.shade700,
+        elevation: 2,
+        leading: _selectedIndex == 3 // Back button only for Company Details screen
+            ? IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            setState(() {
+              _selectedIndex = 5; // Navigate back to Welcome screen
+            });
+          },
+        )
+            : IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () {
+            _scaffoldKey.currentState?.openDrawer();
+          },
+        ),
       ),
-      body: Row(
-        children: [
-          NavigationRail(
-            extended: _isSidebarExpanded,
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (index) {
-              if (index == 5) {
-                _logout(context); // Logout button
-                return;
-              }
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-            leading: Column(
-              children: [
-                IconButton(
-                  icon: Icon(
-                    _isSidebarExpanded ? Icons.arrow_back : Icons.menu,
-                  ),
-                  onPressed: _toggleSidebar,
-                ),
-                const SizedBox(height: 10),
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.blue.withOpacity(0.1),
-                  child: const Icon(Icons.business, color: Colors.blue),
-                ),
-              ],
+      drawer: Drawer(
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.blue.shade700, Colors.purple.shade700],
             ),
-            labelType: _isSidebarExpanded
-                ? NavigationRailLabelType.none
-                : NavigationRailLabelType.all,
-            destinations: const [
-              NavigationRailDestination(
-                icon: Icon(Icons.add_task_outlined),
-                selectedIcon: Icon(Icons.add_task),
-                label: Text('Create Task'),
+          ),
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              UserAccountsDrawerHeader(
+                decoration: const BoxDecoration(
+                  color: Colors.transparent,
+                ),
+                accountName: _isLoading
+                    ? const CircularProgressIndicator(
+                  color: Colors.white,
+                )
+                    : Text(
+                  _companyName,
+                  style: const TextStyle(fontSize: 20, color: Colors.white),
+                ),
+                accountEmail: Text(
+                  widget.userEmail,
+                  style: const TextStyle(color: Colors.white70),
+                ),
+                currentAccountPicture: const CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: Icon(
+                    Icons.business,
+                    color: Colors.blue,
+                  ),
+                ),
               ),
-              NavigationRailDestination(
-                icon: Icon(Icons.task_outlined),
-                selectedIcon: Icon(Icons.task),
-                label: Text('All Tasks'),
+              ListTile(
+                leading: const Icon(Icons.home_outlined, color: Colors.white),
+                title: const Text(
+                  'Welcome',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 5; // Navigate to Welcome screen
+                  });
+                  Navigator.pop(context);
+                },
               ),
-              NavigationRailDestination(
-                icon: Icon(Icons.report_outlined),
-                selectedIcon: Icon(Icons.report),
-                label: Text('Gig Worker Report'),
+              ListTile(
+                leading: const Icon(Icons.add_task_outlined, color: Colors.white),
+                title: const Text(
+                  'Create Task',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 0;
+                  });
+                  Navigator.pop(context);
+                },
               ),
-              NavigationRailDestination(
-                icon: Icon(Icons.info_outline),
-                selectedIcon: Icon(Icons.info),
-                label: Text('Company Details'),
+              ListTile(
+                leading: const Icon(Icons.task_outlined, color: Colors.white),
+                title: const Text(
+                  'All Tasks',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 1;
+                  });
+                  Navigator.pop(context);
+                },
               ),
-              NavigationRailDestination(
-                icon: Icon(Icons.settings_outlined),
-                selectedIcon: Icon(Icons.settings),
-                label: Text('Settings'),
+              ListTile(
+                leading: const Icon(Icons.report_outlined, color: Colors.white),
+                title: const Text(
+                  'Gig Worker Report',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 2;
+                  });
+                  Navigator.pop(context);
+                },
               ),
-              NavigationRailDestination(
-                icon: Icon(Icons.logout),
-                selectedIcon: Icon(Icons.logout),
-                label: Text('Logout'),
+              ListTile(
+                leading: const Icon(Icons.info_outline, color: Colors.white),
+                title: const Text(
+                  'Company Details',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = 3;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ExpansionTile(
+                leading: const Icon(Icons.settings_outlined, color: Colors.white),
+                title: const Text(
+                  'Settings',
+                  style: TextStyle(color: Colors.white),
+                ),
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.password, color: Colors.white),
+                    title: const Text(
+                      'Update Password',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UpdatePasswordScreen(userEmail: widget.userEmail),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.account_circle, color: Colors.white),
+                    title: const Text(
+                      'Update Profile',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UpdateProfileScreen(userEmail: widget.userEmail),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.white),
+                title: const Text(
+                  'Logout',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  _logout(context);
+                },
               ),
             ],
           ),
-          const VerticalDivider(thickness: 1, width: 1),
+        ),
+      ),
+      body: Row(
+        children: [
           Expanded(
-            child: _screens[_selectedIndex],
+            flex: 4,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: _screens[_selectedIndex],
+            ),
           ),
         ],
       ),

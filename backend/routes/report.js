@@ -16,7 +16,7 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Configure Multer for file uploads
+// Multer Storage Configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadsDir);
@@ -26,10 +26,13 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage });
+const upload = multer({ storage, limits: { fileSize: 20 * 1024 * 1024 } });
 
-// Route for submitting a report with an image
-router.post('/submitReport', upload.single('image'), async (req, res) => {
+// Route for submitting reports with multiple images and files
+router.post('/submitReport', upload.fields([
+  { name: 'images', maxCount: 20 },
+  { name: 'files', maxCount: 20 },
+]), async (req, res) => {
   try {
     console.log('Processing report submission...');
     await submitReport(req, res);
