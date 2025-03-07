@@ -64,3 +64,22 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: 'Failed to update profile', error: error.message });
   }
 };
+
+
+export const getUserByEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    // Find the user by email
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json(user);
+  } catch (err) {
+    console.error('Error fetching user by email:', err);
+    res.status(500).json({ error: err.message });
+  }
+};

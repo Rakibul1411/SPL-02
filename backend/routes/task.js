@@ -1,7 +1,22 @@
 import express from 'express';
-import { getAllTasksByCompanyId, createTask, updateTask, deleteTask, getTasksById, tasksAcceptedByWorkers, tasksRejectedByWorkers } from '../controller/taskController.js';
+import {
+    getAllTasksByCompanyId,
+    createTask, updateTask,
+    deleteTask,
+    getTasksById,
+    tasksAcceptedByWorkers,
+    tasksRejectedByWorkers,
+    getRejectedTasks,
+    getAcceptedTasks,
+    getAcceptedTasksForCompany,
+    getRejectedTasksForCompany,
+    getAcceptedOrRejectedTasksForCompany,
+} from '../controller/taskController.js';
 
 const router = express.Router();
+
+// New route for fetching tasks with worker details (accepted or rejected)
+router.get('/getAcceptedOrRejectedTasksForCompany/:email', getAcceptedOrRejectedTasksForCompany);
 
 // Get all tasks each individual company
 router.get('/taskListByCompanyId/:email', getAllTasksByCompanyId);
@@ -12,8 +27,20 @@ router.get('/taskListById/:email', getTasksById);
 // update tasks which is accepted by gig workers
 router.post('/:id/taskAccepted/:email', tasksAcceptedByWorkers)
 
-// update tasks which is rejected by gig workers
+// get tasks which is rejected
 router.post('/:id/taskRejected/:email', tasksRejectedByWorkers)
+
+// get tasks in company which is accepted by gig workers
+router.post('/getAcceptedTasksForCompany/:email', getAcceptedTasksForCompany)
+
+// get tasks in company which is rejected by gig workers
+router.post('/getRejectedTasksForCompany/:email', getRejectedTasksForCompany)
+
+// get tasks which is accepted
+router.get('/getAcceptedTasks/:email', getAcceptedTasks)
+
+// update tasks which is rejected by gig workers
+router.get('/getRejectedTasks/:email', getRejectedTasks)
 
 // Create a new task
 router.post('/taskCreate/', createTask);

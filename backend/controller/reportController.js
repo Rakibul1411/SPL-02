@@ -4,7 +4,9 @@ export const submitReport = async (req, res) => {
   try {
     const { taskId, workerId, reportText } = req.body;
 
-    if (!taskId || !workerId || !reportText) {
+    console.log(req.body);
+
+    if (!taskId || !reportText) {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields (taskId, workerId, reportText)',

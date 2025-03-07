@@ -34,7 +34,7 @@ export const sendOTP = async (email, otp) => {
 
 
 // 📌 ✅ Function to send task email notification
-export const sendTaskEmailNotification = async (emails, task) => {
+export const sendTaskEmailNotifications = async (emails, task) => {
   try {
     const mailOptions = {
       from: process.env.SMTP_MAIL,
@@ -57,4 +57,29 @@ export const sendTaskEmailNotification = async (emails, task) => {
   } catch (error) {
         console.error("Failed to send task email notification:", error);
     }
+};
+
+export const sendTaskEmailNotification = async (emails, task) => {
+  try {
+    const mailOptions = {
+      from: process.env.SMTP_MAIL,
+      to: emails, // Can be a single email or an array of emails
+      subject: `New Task Assigned: ${task.title}`,
+      html: `
+        <h2>New Task Assigned</h2>
+        <p><strong>Title:</strong> ${task.title}</p>
+        <p><strong>Description:</strong> ${task.description}</p>
+        <p><strong>Location:</strong> ${task.location}</p>
+        <p><strong>Incentive:</strong> $${task.incentive.toFixed(2)}</p>
+        <p><strong>Deadline:</strong> ${task.deadline ? task.deadline.toISOString().split("T")[0] : "No deadline"}</p>
+        <br/>
+        <p>Check the app for more details.</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("📧 Task assignment email sent to worker!");
+  } catch (error) {
+    console.error("Failed to send task email notification:", error);
+  }
 };

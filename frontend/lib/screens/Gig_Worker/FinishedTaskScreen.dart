@@ -4,7 +4,7 @@ import '../../models/task_model.dart';
 import '../../providers/task_provider.dart';
 
 class FinishedTasksScreen extends ConsumerWidget {
-  const FinishedTasksScreen({super.key});
+  const FinishedTasksScreen({super.key, required String userEmail});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

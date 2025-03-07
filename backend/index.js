@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 // import homeRoute from './routes/home.js';
 import authRoute from './routes/auth.js';
 import taskRoute from './routes/task.js';
+import taskAssignmentRoute from './routes/taskAssignmentRoute.js';
 import profileRoute from './routes/profileRoute.js';
 import reportRoute from './routes/report.js';
 import dotenv from 'dotenv';
@@ -44,6 +45,8 @@ mongoose.connect(process.env.MONGO_URI, {
     app.use('/auth', authRoute);
 
     app.use('/task', taskRoute);
+
+    app.use('/taskAssignment', taskAssignmentRoute);
 
     app.use('/profile', profileRoute);
 

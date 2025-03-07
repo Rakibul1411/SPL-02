@@ -1,6 +1,86 @@
 import Task from '../models/taskTable.js';
 import User from "../models/userTable.js";
-import { sendTaskEmailNotification } from "../utils/emailSender.js"; // Import email function
+import { sendTaskEmailNotifications, sendTaskEmailNotification } from "../utils/emailSender.js"; // Import email function
+
+// Fetch all tasks where any gig worker has accepted or rejected the task (for company)
+export const getAcceptedOrRejectedTasksForCompany = async (req, res) => {
+  try {
+    const email = req.params.email; // Company email
+
+    // Step 1: Find the user (company) by email to get the companyId
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const companyId = user._id;
+
+    // Step 2: Fetch all tasks that belong to the companyId
+    const tasks = await Task.find({ companyId: companyId });
+
+    // Step 3: Filter tasks that have at least one worker in acceptedByWorkers or rejectedByWorkers
+    const filteredTasks = tasks.filter(
+      (task) => task.acceptedByWorkers.length > 0 || task.rejectedByWorkers.length > 0
+    );
+
+    // Step 4: For each task, fetch worker details (name, email, distance)
+    const tasksWithWorkerDetails = await Promise.all(
+      filteredTasks.map(async (task) => {
+        // Fetch worker details for accepted workers
+        const acceptedWorkers = await Promise.all(
+          task.acceptedByWorkers.map(async (worker) => {
+            const user = await User.findById(worker.workerId);
+            const selectedWorker = task.selectedWorkers.find(
+              (sw) => sw.workerId.toString() === worker.workerId.toString()
+            );
+            return {
+              name: user ? user.name : 'Unknown',
+              email: worker.email,
+              distance: selectedWorker ? selectedWorker.distance : 0,
+            };
+          })
+        );
+
+        // Fetch worker details for rejected workers
+        const rejectedWorkers = await Promise.all(
+          task.rejectedByWorkers.map(async (worker) => {
+            const user = await User.findById(worker.workerId);
+            const selectedWorker = task.selectedWorkers.find(
+              (sw) => sw.workerId.toString() === worker.workerId.toString()
+            );
+            return {
+              name: user ? user.name : 'Unknown',
+              email: worker.email,
+              distance: selectedWorker ? selectedWorker.distance : 0,
+            };
+          })
+        );
+
+        // Return the task with worker details
+        return {
+          taskId: task._id,
+          title: task.title,
+          description: task.description,
+          shopName: task.shopName,
+          incentive: task.incentive,
+          deadline: task.deadline,
+          status: task.status,
+          latitude: task.latitude,
+          longitude: task.longitude,
+          acceptedWorkers: acceptedWorkers,
+          rejectedWorkers: rejectedWorkers,
+        };
+      })
+    );
+
+    // Step 5: Return the tasks with worker details
+    res.status(200).json(tasksWithWorkerDetails);
+  } catch (err) {
+    console.error('Error fetching tasks for company:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
 
 export const tasksAcceptedByWorkers = async (req, res) => {
   try {
@@ -99,6 +179,108 @@ export const tasksRejectedByWorkers = async (req, res) => {
     res.status(200).json({ message: 'Worker rejected the task successfully', task });
   } catch (err) {
     console.error('Error accepting task:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Fetch all accepted tasks by worker email
+export const getAcceptedTasks = async (req, res) => {
+  try {
+    const email = req.params.email; // Get email from query parameters
+
+    console.log(email);
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    // Find tasks where the worker's email is in the acceptedByWorkers array
+    const acceptedTasks = await Task.find({
+      'acceptedByWorkers.email': email,
+    });
+
+    console.log(acceptedTasks);
+
+    res.status(200).json(acceptedTasks);
+  } catch (err) {
+    console.error('Error fetching accepted tasks:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Fetch all rejected tasks by worker email
+export const getRejectedTasks = async (req, res) => {
+  try {
+    const email = req.params.email; // Get email from query parameters
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    // Find tasks where the worker's email is in the rejectedByWorkers array
+    const rejectedTasks = await Task.find({
+      'rejectedByWorkers.email': email,
+    });
+
+    res.status(200).json(rejectedTasks);
+  } catch (err) {
+    console.error('Error fetching rejected tasks:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Fetch all tasks where any gig worker has accepted the task (for company)
+export const getAcceptedTasksForCompany = async (req, res) => {
+  try {
+
+    const email = req.params.email; // Company email
+
+    // Find the task by ID to get the companyId
+    const task = await Task.findById(id);
+
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    const companyId = task.companyId;
+
+    // Fetch all tasks that belong to the companyId and have at least one accepted worker
+    const tasks = await Task.find({
+      companyId: companyId,
+      'acceptedByWorkers.0': { $exists: true } // Check if acceptedByWorkers array is not empty
+    });
+
+    res.status(200).json(tasks);
+  } catch (err) {
+    console.error('Error fetching accepted tasks for company:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Fetch all tasks where any gig worker has rejected the task (for company)
+export const getRejectedTasksForCompany = async (req, res) => {
+  try {
+
+    const email = req.params.email; // Company email
+
+    // Find the task by ID to get the companyId
+    const task = await Task.findById(id);
+
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    const companyId = task.companyId;
+
+    // Fetch all tasks that belong to the companyId and have at least one rejected worker
+    const tasks = await Task.find({
+      companyId: companyId,
+      'rejectedByWorkers.0': { $exists: true } // Check if rejectedByWorkers array is not empty
+    });
+
+    res.status(200).json(tasks);
+  } catch (err) {
+    console.error('Error fetching rejected tasks for company:', err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -323,7 +505,7 @@ export const createTask = async (req, res) => {
       const nearestWorkerEmails = nearestWorkers.map(({ worker }) => worker.email);
 
       // Send email to nearest workers
-      await sendTaskEmailNotification(nearestWorkerEmails, newTask);
+      await sendTaskEmailNotifications(nearestWorkerEmails, newTask);
 
       // Send real-time notifications
       await sendNotification(nearestWorkers, newTask);

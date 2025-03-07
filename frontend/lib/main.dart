@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/screens/Company/company_screen.dart';
 import 'package:frontend/screens/Company/create_task_screen.dart';
 import 'package:frontend/screens/Company/task_list_screen.dart';
+import 'package:frontend/screens/Gig_Worker/AcceptedTaskScreen.dart';
 import 'package:frontend/screens/Gig_Worker/gig_worker_screen.dart';
 import 'package:frontend/screens/Profile/UpdatePasswordScreen.dart';
 import 'package:frontend/screens/ResetAndUpdatePassword/ResetPasswordScreen.dart';
@@ -35,10 +36,11 @@ class MyApp extends StatelessWidget {
       ),
       //home: const ReportSubmissionScreen(taskId: '1', workerId: '1',),
       //home: const LaunchScreen(),
+      //home: AcceptedTaskScreen(task: '1', userEmail: 'natiqakif@gmail.com'),
       //home: const CompanyScreen(userEmail: 'bsse1408@iit.du.ac.bd'),
       //home: const CompanyScreen(userEmail: 'bsse1411@iit.du.ac.bd'),
       //home: const ShopManagerScreen(userEmail: 'natiqaqif@gmail.com'),
-      //home: const GigWorkerScreen(userEmail: 'rakibulislamnatiq@gmail.com'),
+      home: const GigWorkerScreen(userEmail: 'mdrakibul11611@gmail.com'),
       //home: const CreateTaskScreen(userEmail: 'bsse1411@iit.du.ac.bd',),
       //home: const ResetPasswordScreen(email: 'email'),
       debugShowCheckedModeBanner: false, // Or your home screen

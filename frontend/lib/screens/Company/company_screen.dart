@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart' as provider;
+import 'FinishedTasksScreen.dart';
 import '../OtherScreens/launch_page_screen.dart';
 import '../Profile/profile_details_screen.dart';
+import 'AcceptedTasksListScreen.dart';
+import 'AssignTasksScreen.dart';
+import 'RejectedTasksListScreen.dart';
 import 'create_task_screen.dart';
 import 'task_list_screen.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/authProvider.dart';
 import '../Profile/UpdatePasswordScreen.dart'; // Import UpdatePasswordScreen
 import '../Profile/UpdateProfileScreen.dart'; // Import UpdateProfileScreen
-
 class CompanyScreen extends ConsumerStatefulWidget {
   final String userEmail;
 
@@ -284,31 +287,100 @@ class _CompanyScreenState extends ConsumerState<CompanyScreen> {
                   Navigator.pop(context);
                 },
               ),
-              ListTile(
-                leading: const Icon(Icons.add_task_outlined, color: Colors.white),
-                title: const Text(
-                  'Create Task',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () {
-                  setState(() {
-                    _selectedIndex = 0;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
+              ExpansionTile(
                 leading: const Icon(Icons.task_outlined, color: Colors.white),
                 title: const Text(
-                  'All Tasks',
+                  'Tasks Section',
                   style: TextStyle(color: Colors.white),
                 ),
-                onTap: () {
-                  setState(() {
-                    _selectedIndex = 1;
-                  });
-                  Navigator.pop(context);
-                },
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.add_task_outlined, color: Colors.white),
+                    title: const Text(
+                      'Create Task',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = 0; // Navigate to Create Task screen
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.list_alt_outlined, color: Colors.white),
+                    title: const Text(
+                      'All Tasks',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = 1; // Navigate to All Tasks screen
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.check_circle_outline, color: Colors.white),
+                    title: const Text(
+                      'Accepted Tasks',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AcceptedTasksListScreen(userEmail: widget.userEmail),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.cancel_outlined, color: Colors.white),
+                    title: const Text(
+                      'Rejected Tasks',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RejectedTasksListScreen(userEmail: widget.userEmail),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.assignment_outlined, color: Colors.white),
+                    title: const Text(
+                      'Assign Tasks',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AssignTasksScreen(userEmail: widget.userEmail),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.done_all_outlined, color: Colors.white),
+                    title: const Text(
+                      'Finished Tasks',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FinishedTasksScreen(userEmail: widget.userEmail),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
               ListTile(
                 leading: const Icon(Icons.report_outlined, color: Colors.white),
@@ -318,7 +390,7 @@ class _CompanyScreenState extends ConsumerState<CompanyScreen> {
                 ),
                 onTap: () {
                   setState(() {
-                    _selectedIndex = 2;
+                    _selectedIndex = 2; // Navigate to Gig Worker Report screen
                   });
                   Navigator.pop(context);
                 },
@@ -331,7 +403,7 @@ class _CompanyScreenState extends ConsumerState<CompanyScreen> {
                 ),
                 onTap: () {
                   setState(() {
-                    _selectedIndex = 3;
+                    _selectedIndex = 3; // Navigate to Company Details screen
                   });
                   Navigator.pop(context);
                 },

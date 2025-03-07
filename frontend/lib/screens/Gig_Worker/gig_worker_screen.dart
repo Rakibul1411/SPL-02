@@ -7,12 +7,12 @@ import '../Profile/profile_details_screen.dart';
 import '../Report/report_submission_screen.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/authProvider.dart';
-import 'PendingTaskScreen.dart';
+import '../../providers/task_provider.dart';
+import 'AssignedTaskScreen.dart';
 import 'FinishedTaskScreen.dart';
 import 'DeadlinePassedTaskScreen.dart';
 import 'RejectedTaskScreen.dart';
 import 'AcceptedTaskScreen.dart';
-import '../../models/task_model.dart';
 import '../Profile/UpdatePasswordScreen.dart';
 import '../Profile/UpdateProfileScreen.dart';
 
@@ -144,9 +144,8 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
         _isLoading = false;
       });
     } catch (error) {
-      print('Error fetching user name: $error');
       setState(() {
-        _userName = widget.userEmail; // Fallback to email if fetching fails
+        _userName = widget.userEmail;
         _isLoading = false;
       });
     }
@@ -218,17 +217,6 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Dummy task for testing
-    final dummyTask = Task(
-      id: '1',
-      title: 'Sample Task',
-      description: 'This is a sample task.',
-      shopName: 'Sample Location',
-      deadline: DateTime.now().add(const Duration(days: 1)),
-      status: 'pending',
-      incentive: 10, companyId: 'iii', latitude: 0.0, longitude: 0.0, selectedWorkers: [], acceptedByWorkers: [], rejectedByWorkers: [],
-    );
-
     // Determine the appropriate leading icon
     Widget? leadingIcon;
 
@@ -337,14 +325,14 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
                   ListTile(
                     leading: const Icon(Icons.pending_actions, color: Colors.white),
                     title: const Text(
-                      'Pending Tasks',
+                      'Assigned Tasks',
                       style: TextStyle(color: Colors.white),
                     ),
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const PendingTasksScreen(),
+                          builder: (context) => AssignedTasksScreen(email: widget.userEmail,),
                         ),
                       );
                     },
@@ -359,7 +347,7 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const FinishedTasksScreen(),
+                          builder: (context) => const FinishedTasksScreen(userEmail: '',),
                         ),
                       );
                     },
@@ -385,11 +373,11 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
                       'Rejected Tasks',
                       style: TextStyle(color: Colors.white),
                     ),
-                    onTap: () {
+                    onTap: () async {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => RejectedTaskScreen(task: dummyTask),
+                          builder: (context) => RejectedTaskScreen(userEmail: widget.userEmail,),
                         ),
                       );
                     },
@@ -400,11 +388,14 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
                       'Accepted Tasks',
                       style: TextStyle(color: Colors.white),
                     ),
-                    onTap: () {
+                    onTap: () async {
+                      // Get tasks from the provider
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => AcceptedTaskScreen(task: dummyTask),
+                          builder: (context) => AcceptedTaskScreen(
+                            userEmail: widget.userEmail,
+                          ),
                         ),
                       );
                     },

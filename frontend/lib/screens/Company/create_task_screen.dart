@@ -304,12 +304,8 @@ class _CreateTaskScreenState extends ConsumerState<CreateTaskScreen> {
         // Fetch the profile state directly from the provider
         final profileState = ref.read(profileProvider);
 
-        print('state: $profileState');
-
         // Retrieve the company ID from the profile state
         final companyId = profileState.id;
-
-        print('id: $companyId');
 
         if (companyId == null || companyId.isEmpty) {
           // First, attempt to fetch the user profile
