@@ -26,28 +26,19 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100, // Light background color
-      appBar: AppBar(
-        title: const Text(
-          'Profile Details',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-        backgroundColor: Colors.blueAccent, // Accent color for app bar
-        elevation: 4,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () {
-              final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
-              profileProvider.clearProfile();
-              Navigator.pop(context);
-            },
-          ),
-        ],
-      ),
+      // appBar: AppBar(
+      //   title: const Text(
+      //     '', // Empty title to remove "Profile Details"
+      //     style: TextStyle(
+      //       color: Colors.white,
+      //       fontWeight: FontWeight.bold,
+      //       fontSize: 20,
+      //     ),
+      //   ),
+      //   backgroundColor: Colors.blueAccent, // Accent color for app bar
+      //   elevation: 4,
+      //   // Removed the logout button from actions
+      // ),
       body: Consumer<ProfileProvider>(
         builder: (context, profileProvider, child) {
           if (profileProvider.isLoading) {

@@ -142,6 +142,13 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
             fontSize: 24,
           ),
         ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () {
+            // Navigate back to the CompanyScreen
+            Navigator.pop(context);
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list, color: Colors.black87),

@@ -26,6 +26,15 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
   bool _isNewPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
+  // Define colors to match ResetPasswordScreen
+  final Color _primaryColor = const Color(0xFF2563EB); // Blue 600
+  final Color _secondaryColor = const Color(0xFF7C3AED); // Purple 600
+  final Color _accentColor = const Color(0xFF14B8A6); // Teal 500
+  final Color _bgColor = const Color(0xFFF9FAFB); // Gray 50
+  final Color _cardColor = Colors.white;
+  final Color _textColor = const Color(0xFF1F2937); // Gray 800
+  final Color _subtextColor = const Color(0xFF6B7280); // Gray 500
+
   @override
   void dispose() {
     _currentPasswordController.dispose();
@@ -77,6 +86,7 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
+        backgroundColor: message.contains('successful') ? _accentColor : _secondaryColor,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
@@ -88,11 +98,8 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _bgColor, // Use the same background color
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -111,13 +118,13 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        border: Border.all(color: colorScheme.outline.withOpacity(0.5)),
+                        border: Border.all(color: _subtextColor.withOpacity(0.5)),
                         borderRadius: BorderRadius.circular(50),
                       ),
                       child: Icon(
                         Icons.arrow_back_ios_new_rounded,
                         size: 20,
-                        color: colorScheme.primary,
+                        color: _primaryColor,
                       ),
                     ),
                   ),
@@ -126,9 +133,10 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
                   // Screen title
                   Text(
                     'Update Password',
-                    style: textTheme.headlineMedium?.copyWith(
+                    style: TextStyle(
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
+                      color: _textColor,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -136,16 +144,18 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
                   // Header text
                   Text(
                     'Change Your Password',
-                    style: textTheme.titleLarge?.copyWith(
+                    style: TextStyle(
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
+                      color: _textColor,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Create a strong password that you haven\'t used before',
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: _subtextColor,
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -153,8 +163,10 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
                   // Current Password Field
                   Text(
                     'Current Password',
-                    style: textTheme.bodyMedium?.copyWith(
+                    style: TextStyle(
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
+                      color: _textColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -163,13 +175,15 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
                     obscureText: !_isCurrentPasswordVisible,
                     decoration: InputDecoration(
                       hintText: 'Enter current password',
+                      hintStyle: TextStyle(color: _subtextColor),
                       errorText: _currentPasswordError,
-                      prefixIcon: const Icon(Icons.lock_outline),
+                      prefixIcon: Icon(Icons.lock_outline, color: _primaryColor),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _isCurrentPasswordVisible
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
+                          color: _primaryColor,
                         ),
                         onPressed: () {
                           setState(() {
@@ -179,16 +193,18 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: colorScheme.outline),
+                        borderSide: BorderSide(color: _subtextColor.withOpacity(0.5)),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: colorScheme.outline),
+                        borderSide: BorderSide(color: _subtextColor.withOpacity(0.5)),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: colorScheme.primary, width: 2),
+                        borderSide: BorderSide(color: _primaryColor, width: 2),
                       ),
+                      fillColor: _cardColor,
+                      filled: true,
                       contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                     ),
                     validator: (value) {
@@ -212,7 +228,7 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
                       child: Text(
                         'Forgot Password?',
                         style: TextStyle(
-                          color: colorScheme.primary,
+                          color: _primaryColor,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -224,8 +240,10 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
                   // New Password Field
                   Text(
                     'New Password',
-                    style: textTheme.bodyMedium?.copyWith(
+                    style: TextStyle(
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
+                      color: _textColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -234,12 +252,14 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
                     obscureText: !_isNewPasswordVisible,
                     decoration: InputDecoration(
                       hintText: 'Enter new password',
-                      prefixIcon: const Icon(Icons.lock_outline),
+                      hintStyle: TextStyle(color: _subtextColor),
+                      prefixIcon: Icon(Icons.lock_outline, color: _primaryColor),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _isNewPasswordVisible
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
+                          color: _primaryColor,
                         ),
                         onPressed: () {
                           setState(() {
@@ -249,16 +269,18 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: colorScheme.outline),
+                        borderSide: BorderSide(color: _subtextColor.withOpacity(0.5)),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: colorScheme.outline),
+                        borderSide: BorderSide(color: _subtextColor.withOpacity(0.5)),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: colorScheme.primary, width: 2),
+                        borderSide: BorderSide(color: _primaryColor, width: 2),
                       ),
+                      fillColor: _cardColor,
+                      filled: true,
                       contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                     ),
                     validator: (value) {
@@ -277,8 +299,10 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
                   // Confirm New Password Field
                   Text(
                     'Confirm New Password',
-                    style: textTheme.bodyMedium?.copyWith(
+                    style: TextStyle(
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
+                      color: _textColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -287,13 +311,15 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
                     obscureText: !_isConfirmPasswordVisible,
                     decoration: InputDecoration(
                       hintText: 'Confirm your password',
+                      hintStyle: TextStyle(color: _subtextColor),
                       errorText: _confirmPasswordError,
-                      prefixIcon: const Icon(Icons.lock_outline),
+                      prefixIcon: Icon(Icons.lock_outline, color: _primaryColor),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _isConfirmPasswordVisible
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
+                          color: _primaryColor,
                         ),
                         onPressed: () {
                           setState(() {
@@ -303,16 +329,18 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: colorScheme.outline),
+                        borderSide: BorderSide(color: _subtextColor.withOpacity(0.5)),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: colorScheme.outline),
+                        borderSide: BorderSide(color: _subtextColor.withOpacity(0.5)),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: colorScheme.primary, width: 2),
+                        borderSide: BorderSide(color: _primaryColor, width: 2),
                       ),
+                      fillColor: _cardColor,
+                      filled: true,
                       contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                     ),
                     validator: (value) {
@@ -331,8 +359,8 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _updatePassword,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
+                        backgroundColor: _primaryColor,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -344,7 +372,7 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
                         height: 24,
                         width: 24,
                         child: CircularProgressIndicator(
-                          color: colorScheme.onPrimary,
+                          color: Colors.white,
                           strokeWidth: 2,
                         ),
                       )
