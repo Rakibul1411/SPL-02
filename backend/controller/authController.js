@@ -5,19 +5,48 @@ import { sendOTP } from '../utils/emailSender.js';
 
 export const registration = async (req, res) => {
   const { name, email, password, role, latitude, longitude } = req.body;
-
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
+    let finalName = name;
+
+    if (role === 'Shop Manager') {
+      const similarNameUsers = await User.find({
+        role: 'Shop Manager',
+        name: new RegExp(`^${name}(-\\d+)?$`)
+      });
+
+      if (similarNameUsers.length > 0) {
+        const baseNamePattern = new RegExp(`^(${name})-\\d+$`);
+        const existingNumbers = similarNameUsers
+          .map(user => {
+            const match = user.name.match(baseNamePattern);
+            if (match) {
+              return parseInt(user.name.split('-').pop(), 10);
+            }
+            return 0;
+          })
+          .filter(num => !isNaN(num));
+
+        // Find the highest number and add 1
+        const highestNumber = existingNumbers.length > 0 ?
+          Math.max(...existingNumbers) : 0;
+
+        finalName = `${name}-${highestNumber + 1}`;
+      } else {
+        // First shop manager with this name, no need to modify
+        finalName = `${name}-1`;
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const otp = generateOTP();
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
-
     const newUser = new User({
-      name,
+      name: finalName,
       email,
       password: hashedPassword,
       role,
@@ -27,10 +56,8 @@ export const registration = async (req, res) => {
       latitude,
       longitude,
     });
-
     await newUser.save();
     await sendOTP(email, otp);
-
     res.status(201).json({isRegistration: true, message: 'OTP sent to your email. Please verify to complete registration.' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to register user', details: error.message });

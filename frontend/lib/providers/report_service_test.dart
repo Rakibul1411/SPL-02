@@ -6,7 +6,8 @@ import '../models/report.dart';
 
 class ReportService {
   //final String baseUrl = 'http://192.168.0.101:3005'; // Replace with actual API URL
-  final String baseUrl = 'http://localhost:3005';
+  //final String baseUrl = 'http://localhost:3005';
+  final String baseUrl = 'http://10.0.2.2:3005';
 
   Future<Report> submitReport({
     required String taskId,

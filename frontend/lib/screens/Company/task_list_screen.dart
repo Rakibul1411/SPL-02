@@ -7,7 +7,7 @@ import 'dart:async'; // Import Timer
 
 class TaskListScreen extends ConsumerStatefulWidget {
   final String userEmail;
-  const TaskListScreen({super.key, required  this.userEmail});
+  const TaskListScreen({super.key, required this.userEmail});
 
   @override
   ConsumerState<TaskListScreen> createState() => _TaskListScreenState();
@@ -139,6 +139,7 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
           style: TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.bold,
+            fontSize: 24,
           ),
         ),
         actions: [
@@ -209,7 +210,7 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
                             child: Text(
                               task.title,
                               style: const TextStyle(
-                                fontSize: 18,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -321,8 +322,8 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
               await ref.read(taskProvider.notifier).fetchTasksByCompanyId(widget.userEmail);
             }
           },
-          elevation: 4,
-          highlightElevation: 8,
+          elevation: 6,
+          highlightElevation: 12,
           backgroundColor: Theme.of(context).primaryColor,
           extendedPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(

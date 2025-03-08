@@ -8,7 +8,9 @@ final taskAssignmentProvider = StateNotifierProvider<TaskAssignmentNotifier, Lis
 });
 
 class TaskAssignmentNotifier extends StateNotifier<List<TaskAssignment>> {
-  final String baseUrl = 'http://localhost:3005'; // Replace with your backend URL
+  //final String baseUrl = 'http://localhost:3005'; // Replace with your backend URL
+  //final String baseUrl = 'http://192.168.0.101:3005';
+  final String baseUrl = 'http://10.0.2.2:3005';
 
   TaskAssignmentNotifier() : super([]);
 
@@ -38,8 +40,6 @@ class TaskAssignmentNotifier extends StateNotifier<List<TaskAssignment>> {
         Uri.parse('$baseUrl/taskAssignment/assignWorker/$taskId/$email'),
         headers: {'Content-Type': 'application/json'},
       );
-
-      print(response.statusCode);
 
       if (response.statusCode != 200) {
         throw Exception('Failed to assign worker: ${response.body}');

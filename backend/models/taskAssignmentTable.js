@@ -21,7 +21,7 @@ const taskAssignmentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['assigned', 'completed'],
+    enum: ['assigned', 'finished'],
     default: 'assigned',
   },
   verificationCode: {

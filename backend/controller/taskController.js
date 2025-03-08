@@ -449,14 +449,26 @@ export const createTask = async (req, res) => {
       return res.status(400).json({ error: "Invalid deadline format" });
     }
 
-    // Validate task location
-    const { latitude, longitude } = req.body;
-    if (!latitude || !longitude) {
-      return res.status(400).json({ error: "Task location (latitude and longitude) is required" });
+    // Fetch the shop manager's location based on the shop name
+    const shopName = req.body.shopName;
+    const shopManager = await User.findOne({ name: shopName, role: "Shop Manager" });
+
+    if (!shopManager) {
+      return res.status(404).json({ error: "Shop Manager not found for the given shop name" });
     }
 
-    // Create new task
-    const newTask = new Task({ ...req.body, deadline });
+    const shopManagerId = shopManager._id; // Get the shop manager's user ID
+    const { latitude, longitude } = shopManager;
+
+    // Create new task with the fetched latitude and longitude
+    const newTask = new Task({
+      ...req.body,
+      deadline,
+      latitude,
+      longitude,
+//      shopName: shopManagerId, // Store the shop manager's user ID in shopName
+    });
+
     await newTask.save();
 
     // Find all gig workers
@@ -490,7 +502,6 @@ export const createTask = async (req, res) => {
       distance: distance
     }));
     await newTask.save();
-
 
     // Detailed logging of nearest workers
     console.log("\n--- Nearest Gig Workers ---");
@@ -530,10 +541,9 @@ export const createTask = async (req, res) => {
   }
 };
 
-// Update a task
 export const updateTask = async (req, res) => {
   const { id } = req.params;
-  const { title, description, shopName, incentive, deadline, status, latitude, longitude } = req.body;
+  const { title, description, shopName, incentive, deadline, status } = req.body;
 
   console.log(id);
 
@@ -543,9 +553,26 @@ export const updateTask = async (req, res) => {
       return res.status(400).json({ error: 'Invalid deadline format' });
     }
 
+    // Fetch the shop manager's location based on the shop name
+    const shopManager = await User.findOne({ name: shopName, role: "Shop Manager" });
+
+    if (!shopManager) {
+      return res.status(404).json({ error: "Shop Manager not found for the given shop name" });
+    }
+    const shopManagerId = shopManager._id; // Get the shop manager's user ID
+    const { latitude, longitude } = shopManager;
+
     const updatedTask = await Task.findByIdAndUpdate(
       id,
-      { title, description, shopName, incentive, deadline, status, latitude, longitude },
+      {
+        title,
+        description,
+        shopName,
+        incentive,
+        deadline,
+        status,
+        latitude,
+        longitude },
       { new: true } // Return the updated task
     );
 

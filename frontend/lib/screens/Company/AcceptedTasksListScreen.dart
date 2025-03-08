@@ -16,6 +16,15 @@ class AcceptedTasksListScreen extends ConsumerStatefulWidget {
 class _AcceptedTasksListScreenState extends ConsumerState<AcceptedTasksListScreen> {
   bool _isLoading = true;
 
+  // Define a consistent color theme
+  final Color _primaryColor = const Color(0xFF2563EB); // Blue 600
+  final Color _secondaryColor = const Color(0xFF7C3AED); // Purple 600
+  final Color _accentColor = const Color(0xFF14B8A6); // Teal 500
+  final Color _bgColor = const Color(0xFFF9FAFB); // Gray 50
+  final Color _cardColor = Colors.grey.shade200; // Grey task box
+  final Color _textColor = const Color(0xFF1F2937); // Gray 800
+  final Color _subtextColor = const Color(0xFF6B7280); // Gray 500
+
   @override
   void initState() {
     super.initState();
@@ -65,13 +74,16 @@ class _AcceptedTasksListScreenState extends ConsumerState<AcceptedTasksListScree
     return Scaffold(
       appBar: AppBar(
         title: const Text('Accepted Tasks'),
+        backgroundColor: _primaryColor,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: _loadAcceptedTasks,
           ),
         ],
       ),
+      backgroundColor: _bgColor,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : acceptedTasks.isEmpty
@@ -82,28 +94,55 @@ class _AcceptedTasksListScreenState extends ConsumerState<AcceptedTasksListScree
         itemBuilder: (context, index) {
           final task = acceptedTasks[index];
           return Card(
-            margin: const EdgeInsets.only(bottom: 16),
-            elevation: 4,
+            elevation: 2,
+            shadowColor: Colors.black.withOpacity(0.1),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
             ),
+            color: _cardColor, // Grey task box
+            margin: const EdgeInsets.only(bottom: 16),
             child: ExpansionTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.green,
-                child: Icon(Icons.check, color: Colors.white),
-              ),
-              title: Text(
-                task.title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              subtitle: Text(
-                'Shop: ${task.shopName} • Incentive: \$${task.incentive.toStringAsFixed(2)}',
+              leading: const Icon(Icons.arrow_drop_down, color: Colors.black), // Toggle icon
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    task.title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: _textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Shop: ${task.shopName}',
+                    style: TextStyle(
+                      color: _subtextColor,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Incentive: \$${task.incentive.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      color: _subtextColor,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.calendar_today, size: 16, color: _subtextColor),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Deadline: ${task.deadline.day}/${task.deadline.month}/${task.deadline.year}',
+                        style: TextStyle(color: _subtextColor),
+                      ),
+                    ],
+                  ),
+                ],
               ),
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -111,58 +150,79 @@ class _AcceptedTasksListScreenState extends ConsumerState<AcceptedTasksListScree
                         'Description:',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Colors.grey[700],
+                          color: _textColor,
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(task.description),
+                      Text(
+                        task.description,
+                        style: TextStyle(
+                          color: _subtextColor,
+                        ),
+                      ),
                       const SizedBox(height: 16),
+
+                      // Accepted Workers Section
                       Text(
                         'Accepted By:',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Colors.grey[700],
+                          color: _textColor,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 8),
                       ...task.acceptedByWorkers.map((worker) {
                         final selectedWorker = task.selectedWorkers.firstWhere(
                               (sw) => sw.workerId == worker.workerId,
                           orElse: () => SelectedWorker(workerId: '', email: '', distance: 0.0),
                         );
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Row(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Icons.person, size: 16, color: Colors.green),
-                              const SizedBox(width: 8),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              Row(
                                 children: [
-                                  Text(worker.email),
-                                  Text('Distance: ${selectedWorker.distance.toStringAsFixed(6)} km'),
+                                  const Icon(Icons.person, size: 16, color: Colors.green),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      worker.email,
+                                      style: TextStyle(
+                                        color: _textColor,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
-                              const Spacer(),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 24),
+                                child: Text(
+                                  'Distance: ${selectedWorker.distance.toStringAsFixed(6)} km',
+                                  style: TextStyle(
+                                    color: _subtextColor,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
                               ElevatedButton(
                                 onPressed: () => _assignWorker(task.id!, worker.email),
-                                child: const Text('Assign Worker'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _primaryColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  minimumSize: const Size(double.infinity, 40), // Full-width button
+                                ),
+                                child: const Text(
+                                  'Assign Worker',
+                                  style: TextStyle(color: Colors.white),
+                                ),
                               ),
                             ],
                           ),
                         );
                       }).toList(),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(Icons.calendar_today, size: 16, color: Colors.grey[700]),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Deadline: ${task.deadline.day}/${task.deadline.month}/${task.deadline.year}',
-                            style: TextStyle(color: Colors.grey[700]),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ),

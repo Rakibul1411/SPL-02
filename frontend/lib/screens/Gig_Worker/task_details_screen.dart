@@ -41,9 +41,19 @@ class TaskDetailsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Task Details'),
+        title: const Text(
+          'Task Details',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,72 +68,42 @@ class TaskDetailsScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               task.description,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
+                color: Colors.grey[700],
               ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Icon(
-                  Icons.location_on_outlined,
-                  size: 16,
-                  color: Colors.grey[600],
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  task.shopName,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
-                ),
-              ],
+            const SizedBox(height: 24),
+            _buildDetailRow(
+              icon: Icons.location_on_outlined,
+              text: task.shopName,
+              color: Colors.grey[600]!,
             ),
             const SizedBox(height: 16),
-            Text(
-              'Incentive: \$${task.incentive.toStringAsFixed(2)}',
-              style: const TextStyle(
-                fontSize: 16,
-              ),
+            _buildDetailRow(
+              icon: Icons.attach_money,
+              text: 'Incentive: \$${task.incentive.toStringAsFixed(2)}',
+              color: Colors.green[700]!,
             ),
             const SizedBox(height: 16),
-            Text(
+            _buildDetailRow(
+              icon: Icons.calendar_today,
+              text:
               'Deadline: ${task.deadline.day}/${task.deadline.month}/${task.deadline.year}',
-              style: const TextStyle(
-                fontSize: 16,
-              ),
+              color: Colors.grey[600]!,
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Icon(
-                  Icons.access_time,
-                  size: 16,
-                  color: taskStatus == 'Deadline Over'
-                      ? Colors.red
-                      : Colors.grey[600],
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  remainingTime,
-                  style: TextStyle(
-                    color: taskStatus == 'Deadline Over'
-                        ? Colors.red
-                        : Colors.grey[600],
-                    fontSize: 14,
-                    fontWeight: taskStatus == 'Deadline Over'
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                  ),
-                ),
-              ],
+            _buildDetailRow(
+              icon: Icons.access_time,
+              text: remainingTime,
+              color: taskStatus == 'Deadline Over' ? Colors.red : Colors.grey[600]!,
+              isUrgent: taskStatus == 'Deadline Over',
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 6,
+                horizontal: 16,
+                vertical: 8,
               ),
               decoration: BoxDecoration(
                 color: taskStatus == 'Done'
@@ -142,12 +122,39 @@ class TaskDetailsScreen extends StatelessWidget {
                       ? Colors.red[700]
                       : Colors.blue[700],
                   fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDetailRow({
+    required IconData icon,
+    required String text,
+    required Color color,
+    bool isUrgent = false,
+  }) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: color,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 16,
+            color: color,
+            fontWeight: isUrgent ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ],
     );
   }
 }

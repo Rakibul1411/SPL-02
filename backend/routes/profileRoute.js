@@ -1,5 +1,5 @@
 import express from 'express';
-import { getProfile, updateProfile, getUserByEmail } from '../controller/profileController.js';
+import { getProfile, updateProfile, getUserByEmail, getUserByRole } from '../controller/profileController.js';
 
 const router = express.Router();
 
@@ -11,5 +11,7 @@ router.put('/updateProfile', updateProfile);
 
 // Route to fetch user by email
 router.get('/email/:email', getUserByEmail);
+
+router.get('/getUserByRole', getUserByRole);
 
 export default router;

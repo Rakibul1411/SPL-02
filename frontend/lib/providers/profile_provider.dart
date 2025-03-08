@@ -65,7 +65,7 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
 
     //final url = Uri.parse('http://192.168.0.101:3005/profile/getProfile/$userEmail'); // Adjust if needed
-    final url = Uri.parse('http://localhost:3005/profile/getProfile/$userEmail');
+    final url = Uri.parse('http://10.0.2.2:3005/profile/getProfile/$userEmail');
 
     try {
       final response = await http.get(url);

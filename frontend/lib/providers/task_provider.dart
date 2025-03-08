@@ -9,7 +9,9 @@ final taskProvider = StateNotifierProvider<TaskNotifier, List<Task>>((ref) {
 
 class TaskNotifier extends StateNotifier<List<Task>> {
   //final String baseUrl = 'http://192.168.0.101:3005';
-  final String baseUrl = 'http://localhost:3005';
+  //final String baseUrl = 'http://localhost:3005';
+  final String baseUrl = 'http://10.0.2.2:3005';
+
 
   TaskNotifier() : super([]);
 

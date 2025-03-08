@@ -198,14 +198,27 @@ class _NewTaskListScreenState extends ConsumerState<NewTaskListScreen> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _loadTasks,
-              child: const Text('Try Again'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Try Again',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         ),
       )
-      : tasks.isEmpty
-      ? _buildEmptyState()
-      : RefreshIndicator(
+          : tasks.isEmpty
+          ? _buildEmptyState()
+          : RefreshIndicator(
         onRefresh: _loadTasks,
         child: ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -241,6 +254,7 @@ class _NewTaskListScreenState extends ConsumerState<NewTaskListScreen> {
           ElevatedButton(
             onPressed: _loadTasks,
             style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -249,6 +263,7 @@ class _NewTaskListScreenState extends ConsumerState<NewTaskListScreen> {
             child: Text(
               'Refresh',
               style: GoogleFonts.poppins(
+                color: Colors.white,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -402,12 +417,12 @@ class _NewTaskListScreenState extends ConsumerState<NewTaskListScreen> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () => _rejectTask(task),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                             shape: RoundedRectangleBorder(
-                               borderRadius: BorderRadius.circular(8),
-                             ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
+                        ),
                         child: Text(
                           'Reject',
                           style: GoogleFonts.poppins(
