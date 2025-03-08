@@ -39,13 +39,17 @@ class _AcceptedTasksListScreenState extends ConsumerState<AcceptedTasksListScree
     try {
       await ref.read(taskProvider.notifier).fetchAcceptedOrRejectedTasksForCompany(widget.userEmail);
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading accepted tasks: $error')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading accepted tasks: $error')),
+        );
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -53,15 +57,31 @@ class _AcceptedTasksListScreenState extends ConsumerState<AcceptedTasksListScree
     try {
       // Call the API to assign the worker to the task
       await ref.read(taskAssignmentProvider.notifier).assignWorker(taskId, email);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Worker assigned successfully')),
-      );
-      await _loadAcceptedTasks(); // Refresh the task list
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Worker assigned successfully')),
+        );
+        await _loadAcceptedTasks(); // Refresh the task list
+      }
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to assign worker: $error')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to assign worker: $error')),
+        );
+      }
     }
+  }
+
+  // Helper method to find the correct distance for a worker
+  double _getWorkerDistance(Task task, AcceptedByWorker worker) {
+    // Find the matching selectedWorker entry
+    final selectedWorker = task.selectedWorkers.firstWhere(
+          (sw) => sw.workerId == worker.workerId,
+      orElse: () => SelectedWorker(workerId: '', email: '', distance: 0.0),
+    );
+
+    // Return the distance or 0 if not found
+    return selectedWorker.distance;
   }
 
   @override
@@ -172,10 +192,9 @@ class _AcceptedTasksListScreenState extends ConsumerState<AcceptedTasksListScree
                       ),
                       const SizedBox(height: 8),
                       ...task.acceptedByWorkers.map((worker) {
-                        final selectedWorker = task.selectedWorkers.firstWhere(
-                              (sw) => sw.workerId == worker.workerId,
-                          orElse: () => SelectedWorker(workerId: '', email: '', distance: 0.0),
-                        );
+                        // Get distance using the helper method
+                        final distance = _getWorkerDistance(task, worker);
+
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Column(
@@ -198,7 +217,8 @@ class _AcceptedTasksListScreenState extends ConsumerState<AcceptedTasksListScree
                               Padding(
                                 padding: const EdgeInsets.only(left: 24),
                                 child: Text(
-                                  'Distance: ${selectedWorker.distance.toStringAsFixed(6)} km',
+                                  // Format distance to 2 decimal places for better readability
+                                  'Distance: ${distance.toStringAsFixed(2)} km',
                                   style: TextStyle(
                                     color: _subtextColor,
                                   ),

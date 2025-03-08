@@ -31,13 +31,11 @@ export const registration = async (req, res) => {
           })
           .filter(num => !isNaN(num));
 
-        // Find the highest number and add 1
         const highestNumber = existingNumbers.length > 0 ?
           Math.max(...existingNumbers) : 0;
 
         finalName = `${name}-${highestNumber + 1}`;
       } else {
-        // First shop manager with this name, no need to modify
         finalName = `${name}-1`;
       }
     }

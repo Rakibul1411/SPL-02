@@ -4,7 +4,7 @@ import TaskAssignment from '../models/taskAssignmentTable.js';
 
 export const submitReport = async (req, res) => {
   try {
-    const { taskId, reportText } = req.body; // Removed workerId from the request body
+    const { taskId, reportText } = req.body;
 
     console.log(req.body);
 
@@ -15,7 +15,6 @@ export const submitReport = async (req, res) => {
       });
     }
 
-    // Step 1: Find the task assignment by taskId to get the workerId
     const taskAssignment = await TaskAssignment.findOne({ task_id: taskId });
 
     if (!taskAssignment) {
@@ -25,7 +24,6 @@ export const submitReport = async (req, res) => {
       });
     }
 
-    // Step 2: Get the workerId from the task assignment
     const workerId = taskAssignment.worker_id;
 
     if (!workerId) {
@@ -35,7 +33,6 @@ export const submitReport = async (req, res) => {
       });
     }
 
-    // Step 3: Check if the task is verified (verifiedAt is not null)
     if (!taskAssignment.verifiedAt) {
       return res.status(400).json({
         success: false,
@@ -52,11 +49,10 @@ export const submitReport = async (req, res) => {
       ? req.files['files'].map(file => `/uploads/${file.filename}`)
       : [];
 
-    // Step 4: Create and save the report
     const newReport = new Report({
       reportId: `${Date.now()}`,
       taskId,
-      workerId, // Use the workerId fetched from the task assignment
+      workerId,
       reportText,
       imageUrls,
       fileUrls,
@@ -64,11 +60,9 @@ export const submitReport = async (req, res) => {
 
     await newReport.save();
 
-    // Step 5: Update the status in TaskAssignmentTable to 'finished'
     taskAssignment.status = 'finished';
     await taskAssignment.save();
 
-    // Step 6: Update the status in TaskTable to 'finished'
     const task = await Task.findById(taskId);
     if (task) {
       task.status = 'finished';

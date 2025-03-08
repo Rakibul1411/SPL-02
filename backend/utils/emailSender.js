@@ -38,7 +38,7 @@ export const sendTaskEmailNotification = async (emails, task, taskAssigned) => {
   try {
     const mailOptions = {
       from: process.env.SMTP_MAIL,
-      to: emails, // Send to all gig workers
+      to: emails,
       subject: `New Task Assigned: ${task.title}`,
       html: `
         <html>

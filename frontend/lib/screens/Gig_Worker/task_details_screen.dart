@@ -81,6 +81,12 @@ class TaskDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _buildDetailRow(
+              icon: Icons.map_outlined,
+              text: 'Lat: ${task.latitude.toStringAsFixed(6)}, Long: ${task.longitude.toStringAsFixed(6)}',
+              color: Colors.grey[600]!,
+            ),
+            const SizedBox(height: 16),
+            _buildDetailRow(
               icon: Icons.attach_money,
               text: 'Incentive: \$${task.incentive.toStringAsFixed(2)}',
               color: Colors.green[700]!,

@@ -198,6 +198,13 @@ class _AssignedTasksScreenState extends ConsumerState<AssignedTasksScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
+                          'Location: ${taskData.latitude.toStringAsFixed(6)}, ${taskData.longitude.toStringAsFixed(6)}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
                           'Incentive: \$${taskData.incentive.toStringAsFixed(2)}',
                           style: const TextStyle(
                             color: Colors.green,
@@ -229,7 +236,6 @@ class _AssignedTasksScreenState extends ConsumerState<AssignedTasksScreen> {
                       ],
                     ),
                   ),
-
                   // Submit button section (right side)
                   Expanded(
                     flex: 1,

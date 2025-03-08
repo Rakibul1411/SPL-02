@@ -37,13 +37,13 @@ router.post('/getAcceptedTasksForCompany/:email', getAcceptedTasksForCompany)
 router.post('/getRejectedTasksForCompany/:email', getRejectedTasksForCompany)
 
 // get tasks which is accepted
-router.get('/getAcceptedTasks/:email', getAcceptedTasks)
+router.get('/getAcceptedTasks/', getAcceptedTasks)
 
 // update tasks which is rejected by gig workers
 router.get('/getRejectedTasks/:email', getRejectedTasks)
 
 // Create a new task
-router.post('/taskCreate/', createTask);
+router.post('/taskCreate/', createTask); // email send korte hobe company ar
 
 // Update a task
 router.post('/taskUpdate/:id', updateTask);

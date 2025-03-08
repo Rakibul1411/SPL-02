@@ -236,30 +236,14 @@ class _CreateTaskScreenState extends ConsumerState<CreateTaskScreen> {
   void _submitForm() async {
     if (_formKey.currentState!.validate() && _deadline != null) {
       try {
+        // Fetch the user profile to get company ID
         await ref.read(profileProvider.notifier).fetchUserProfile(widget.userEmail);
-
-        // Fetch the profile state directly from the provider
         final profileState = ref.read(profileProvider);
-
-        // Retrieve the company ID from the profile state
         final companyId = profileState.id;
 
         if (companyId == null || companyId.isEmpty) {
-          // First, attempt to fetch the user profile
-          await ref.read(profileProvider.notifier).fetchUserProfile(widget.userEmail);
-
-          // Re-read the profile state after fetching
-          final updatedProfileState = ref.read(profileProvider);
-          print(updatedProfileState);
-          final updatedCompanyId = updatedProfileState.id;
-
-          print('companyId: $updatedCompanyId');
-
-          if (updatedCompanyId == null || updatedCompanyId.isEmpty) {
-            // Show an error dialog if no ID is found
-            _showErrorDialog('Unable to retrieve your profile information. Please try again.');
-            return;
-          }
+          _showErrorDialog('Unable to retrieve your company ID. Please try again.');
+          return;
         }
 
         final newTask = Task(
@@ -270,32 +254,27 @@ class _CreateTaskScreenState extends ConsumerState<CreateTaskScreen> {
           incentive: double.parse(_incentiveController.text),
           deadline: _deadline!,
           status: widget.task?.status ?? 'pending',
-          companyId: companyId!, // Use the retrieved company ID
-          latitude: 0.0, // Latitude will be fetched from the backend
-          longitude: 0.0, // Longitude will be fetched from the backend
+          companyId: companyId, // Use the company ID from profile
+          latitude: 0.0, // Will be updated by backend from shop manager data
+          longitude: 0.0, // Will be updated by backend from shop manager data
           selectedWorkers: [],
           acceptedByWorkers: [],
           rejectedByWorkers: [],
         );
 
         if (widget.task == null) {
-          // Create a new task
           await ref.read(taskProvider.notifier).createTask(newTask);
         } else {
-          // Update an existing task
           await ref.read(taskProvider.notifier).updateTask(newTask);
         }
 
-        // Navigate to TaskListScreen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => TaskListScreen(userEmail: widget.userEmail),
           ),
         );
-
       } catch (error) {
-        // Handle any errors during task creation
         _showErrorDialog('Failed to create/update task: $error');
       }
     } else {
