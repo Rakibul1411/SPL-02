@@ -326,4 +326,112 @@ class TaskNotifier extends StateNotifier<List<Task>> {
     }
   }
 
+  // Fetch all tasks
+  bool isLoading = false;
+  // String? errorMessage;
+  Future<void> fetchTasks() async {
+    isLoading = true;
+    // errorMessage = null;
+
+    try {
+      final url = Uri.parse('$baseUrl/tasks/all');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        final tasks = data.map((item) => Task.fromJson(item)).toList();
+
+        state = tasks;
+      } else {
+        throw Exception('Failed to fetch all tasks: ${response.body}');
+      }
+    } catch (error) {
+      print('Error fetching tasks: $error');
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  // Add this method to the TaskNotifier class in task_provider.dart
+
+  Future<void> fetchFinishedTasksByCompanyId(String userEmail) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/task/finishedTasksByCompanyId/$userEmail'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> taskList = json.decode(response.body);
+        state = taskList.map((task) => Task.fromJson(task)).toList();
+      } else {
+        throw Exception('Failed to fetch finished tasks: ${response.body}');
+      }
+    } catch (error) {
+      print('Error fetching finished tasks: $error');
+      rethrow;
+    }
+  }
+
+  // Add this method to TaskNotifier in task_provider.dart
+  Future<void> fetchAssignableTasks(String userEmail) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/task/getAssignableTasks/$userEmail'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> taskList = json.decode(response.body);
+        state = taskList.map((task) => Task.fromJson(task)).toList();
+      } else {
+        throw Exception('Failed to fetch assignable tasks: ${response.body}');
+      }
+    } catch (error) {
+      print('Error fetching assignable tasks: $error');
+      rethrow;
+    }
+  }
+
+
+// Fetch total finished tasks for a company
+  Future<int> fetchTotalFinishedTasksByCompanyId(String userEmail) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/task/totalFinishedTasksByCompanyId/$userEmail'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return data['count'] ?? 0; // Return the count of finished tasks
+      } else {
+        throw Exception('Failed to fetch finished tasks: ${response.body}');
+      }
+    } catch (error) {
+      print('Error fetching finished tasks: $error');
+      rethrow;
+    }
+  }
+
+// Fetch total pending tasks for a company (based on deadline)
+  Future<int> fetchTotalPendingTasksByCompanyId(String userEmail) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/task/totalPendingTasksByCompanyId/$userEmail'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return data['count'] ?? 0; // Return the count of pending tasks
+      } else {
+        throw Exception('Failed to fetch pending tasks: ${response.body}');
+      }
+    } catch (error) {
+      print('Error fetching pending tasks: $error');
+      rethrow;
+    }
+  }
+
 }

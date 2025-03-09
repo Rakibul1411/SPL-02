@@ -57,7 +57,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
       ),
       AssignSurveyListScreen(email: widget.userEmail,),
       _buildSettingsScreen(),
-       PreviousSurveyListScreen(userEmail: widget.userEmail,),
+      PreviousSurveyListScreen(userEmail: widget.userEmail,),
       _buildDashboardScreen(),
     ];
 

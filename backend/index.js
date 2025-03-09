@@ -5,12 +5,13 @@ import bodyParser from 'body-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// import homeRoute from './routes/home.js';
+
 import authRoute from './routes/auth.js';
 import taskRoute from './routes/task.js';
 import taskAssignmentRoute from './routes/taskAssignmentRoute.js';
 import profileRoute from './routes/profileRoute.js';
 import reportRoute from './routes/report.js';
+import incentiveAndRatingRoute from './routes/incentive&ratingRoute.js';
 import dotenv from 'dotenv';
 
 // Get __dirname equivalent in ES modules
@@ -28,7 +29,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json()); // Middleware to parse JSON requests
+app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // is part of an Express.js application and is used to configure middleware for parsing incoming requests with URL-encoded payloads
 
 // Serve static files from the 'uploads' directory
@@ -51,6 +52,8 @@ mongoose.connect(process.env.MONGO_URI, {
     app.use('/profile', profileRoute);
 
     app.use('/report', reportRoute);
+
+    app.use('/incentive', incentiveAndRatingRoute);
 
     // Start server
     const PORT = process.env.PORT || 3005;

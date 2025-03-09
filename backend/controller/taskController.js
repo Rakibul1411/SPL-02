@@ -111,7 +111,9 @@ const sendNotification = async (workers, task) => {
 
 import Task from '../models/taskTable.js';
 import User from "../models/userTable.js";
+import TaskAssignment from "../models/taskAssignmentTable.js";
 import { sendTaskEmailNotifications, sendTaskEmailNotification } from "../utils/emailSender.js"; // Import email function
+
 
 // Fetch all tasks where any gig worker has accepted or rejected the task (for company)
 export const getAcceptedOrRejectedTasksForCompany = async (req, res) => {
@@ -605,5 +607,128 @@ export const deleteTask = async (req, res) => {
   } catch (error) {
     console.error('Error deleting task:', error);
     res.status(500).json({ error: 'Failed to delete task', details: error.message });
+  }
+};
+
+// Fetch all finished tasks by company email
+export const getFinishedTasksByCompanyId = async (req, res) => {
+  try {
+    const email = req.params.email; // Get company email from params
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    // Find the user (company) by email to get the companyId
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const companyId = user._id;
+
+    // Find all tasks with the company's ID and status "finished"
+    const finishedTasks = await Task.find({
+      companyId: companyId,
+      status: 'finished'
+    });
+
+    res.status(200).json(finishedTasks);
+  } catch (err) {
+    console.error('Error fetching finished tasks:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const getAssignableTasks = async (req, res) => {
+  try {
+    const { email } = req.params;
+    // Find the company by email to get the companyId
+    const company = await User.findOne({ email: email });
+    if (!company) {
+      return res.status(404).json({ error: 'Company not found' });
+    }
+
+    const companyId = company._id;
+
+    // Find all tasks with the company's ID
+    const tasks = await Task.find({
+      companyId: companyId,
+      deadline: { $exists: true, $ne: null },
+      isAssigned: true,
+    });
+
+    res.status(200).json(tasks);
+  } catch (err) {
+    console.error('Error fetching assignable tasks:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Add these endpoints to taskController.js
+
+// Fetch total finished tasks by company email
+export const totalFinishedTasksByCompanyId = async (req, res) => {
+  try {
+    const email = req.params.email; // Get company email from params
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    // Find the user (company) by email to get the companyId
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const companyId = user._id;
+
+    // Find all tasks with the company's ID and status "finished"
+    const finishedTasks = await Task.find({
+      companyId: companyId,
+      status: 'finished'
+    });
+
+    // Return the count of finished tasks
+    res.status(200).json({ count: finishedTasks.length });
+  } catch (err) {
+    console.error('Error fetching finished tasks:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Fetch total pending tasks by company email (based on deadline)
+export const totalPendingTasksByCompanyId = async (req, res) => {
+  try {
+    const email = req.params.email; // Get company email from params
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    // Find the user (company) by email to get the companyId
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const companyId = user._id;
+
+    // Find all tasks with the company's ID and status "pending" and deadline not passed
+    const pendingTasks = await Task.find({
+      companyId: companyId,
+      status: 'pending',
+      deadline: { $gte: new Date() } // Only tasks with deadline in the future
+    });
+
+    // Return the count of pending tasks
+    res.status(200).json({ count: pendingTasks.length });
+  } catch (err) {
+    console.error('Error fetching pending tasks:', err);
+    res.status(500).json({ error: err.message });
   }
 };

@@ -11,6 +11,10 @@ import {
     getAcceptedTasksForCompany,
     getRejectedTasksForCompany,
     getAcceptedOrRejectedTasksForCompany,
+    getFinishedTasksByCompanyId,
+    getAssignableTasks,
+    totalFinishedTasksByCompanyId,
+    totalPendingTasksByCompanyId,
 } from '../controller/taskController.js';
 
 const router = express.Router();
@@ -37,7 +41,7 @@ router.post('/getAcceptedTasksForCompany/:email', getAcceptedTasksForCompany)
 router.post('/getRejectedTasksForCompany/:email', getRejectedTasksForCompany)
 
 // get tasks which is accepted
-router.get('/getAcceptedTasks/', getAcceptedTasks)
+router.get('/getAcceptedTasks/:email', getAcceptedTasks)
 
 // update tasks which is rejected by gig workers
 router.get('/getRejectedTasks/:email', getRejectedTasks)
@@ -50,5 +54,17 @@ router.post('/taskUpdate/:id', updateTask);
 
 // Delete a task
 router.delete('/taskDelete/:id', deleteTask);
+
+// Add the new route for finished tasks
+router.get('/finishedTasksByCompanyId/:email', getFinishedTasksByCompanyId);
+
+// Add this route to task.js
+router.get('/getAssignableTasks/:email', getAssignableTasks);
+
+// Add this route to task.js
+router.get('/totalFinishedTasksByCompanyId/:email', totalFinishedTasksByCompanyId);
+
+// Add this route to task.js
+router.get('/totalPendingTasksByCompanyId/:email', totalPendingTasksByCompanyId);
 
 export default router;

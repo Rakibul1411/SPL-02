@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../../models/task_model.dart';
 import '../../models/taskAssignment_model.dart';
 import 'VerifyWorkerScreen.dart';
+import '../../models/user_model.dart';
 
 class AssignSurveyListScreen extends ConsumerStatefulWidget {
   final String email; // Email of logged-in user
@@ -25,7 +26,7 @@ class _AssignedTasksScreenState extends ConsumerState<AssignSurveyListScreen> {
   String? errorMessage;
   String userRole = '';
   String userId = '';
-  late final List<dynamic> assignments;
+  List<dynamic> assignments = []; // Remove 'late' and initialize as empty list
 
   @override
   void initState() {
@@ -95,20 +96,67 @@ class _AssignedTasksScreenState extends ConsumerState<AssignSurveyListScreen> {
         throw Exception('Failed to fetch shop tasks: ${assignmentsResponse.body}');
       }
 
-      assignments = json.decode(assignmentsResponse.body);
-      print('Raw assignments data: $assignments');
+      // Check if the response is null or empty
+      final responseBody = assignmentsResponse.body;
+      if (responseBody == null || responseBody.isEmpty) {
+        setState(() {
+          errorMessage = 'No tasks available.';
+          isLoading = false;
+        });
+        return;
+      }
+
+      // Safely parse the JSON
+      final dynamic decodedResponse = json.decode(responseBody);
+      if (decodedResponse == null) {
+        setState(() {
+          errorMessage = 'Invalid response format.';
+          isLoading = false;
+        });
+        return;
+      }
+
+      // Handle both array and object responses
+      final List<dynamic> assignments = decodedResponse is List
+          ? decodedResponse
+          : decodedResponse is Map ? [decodedResponse] : [];
+
+      // Debug the raw API response
+      print('Raw API response: $responseBody');
+
+      // Debug the parsed data
+      print('Parsed assignments data: $assignments');
+
+      if (assignments.isEmpty) {
+        setState(() {
+          errorMessage = 'No tasks available.';
+          isLoading = false;
+        });
+        return;
+      }
 
       for (var assignment in assignments) {
+        // Safely handle null or invalid taskDetails
+        Map<String, dynamic>? taskDetailsMap;
+        if (assignment['taskDetails'] is Map<String, dynamic>) {
+          taskDetailsMap = assignment['taskDetails'] as Map<String, dynamic>;
+        }
+
         // Debug the assignment data to check ID structure
         print('Assignment ID: ${assignment['assignmentId']}');
+        print('Task Details: ${assignment['taskDetails']}');
+        print('Worker Details: ${assignment['workerDetails']}');
 
-        tasks.add({
-          'task': Task.fromJson(assignment['taskDetails']),
-          'assignment': TaskAssignment.fromJson(assignment),
-          'worker': assignment['workerDetails'] ?? {},
-          // Store the raw assignmentId for verification
-          'rawAssignmentId': assignment['assignmentId']
-        });
+        // Only add to tasks if we have valid task details
+        if (taskDetailsMap != null) {
+          tasks.add({
+            'task': Task.fromJson(taskDetailsMap),
+            'assignment': TaskAssignment.fromJson(assignment),
+            'worker': assignment['workerDetails'] ?? {},
+            // Store the raw assignmentId for verification
+            'rawAssignmentId': assignment['assignmentId']
+          });
+        }
       }
 
       setState(() {
@@ -123,6 +171,7 @@ class _AssignedTasksScreenState extends ConsumerState<AssignSurveyListScreen> {
       print(errorMessage);
     }
   }
+
 
   void navigateToVerifyWorkerScreen(Map<String, dynamic> taskData) {
     try {

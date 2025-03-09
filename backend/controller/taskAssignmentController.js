@@ -8,6 +8,10 @@ export const assignWorker = async (req, res) => {
     const { taskId, email } = req.params;
 
     const task = await Task.findById(taskId);
+
+    task.isAssigned = true;
+    await task.save();
+
     if (!task) {
       return res.status(404).json({ error: 'Task not found' });
     }
@@ -94,10 +98,13 @@ export const getShopTasks = async (req, res) => {
 
     const shopIdString = shopId.toString();
 
+    console.log('shop id:', shopIdString);
+
     const taskAssignments = await TaskAssignment.find({ shop_id: shopIdString });
 
+    // Check if tasks are found
     if (!taskAssignments || taskAssignments.length === 0) {
-      return res.status(200).json([]);
+      return res.status(200).json([]);  // Ensure it returns an empty array if no tasks are found
     }
 
     const tasksWithDetails = await Promise.all(
@@ -126,12 +133,14 @@ export const getShopTasks = async (req, res) => {
       })
     );
 
+    // Send the correct response
     res.status(200).json(tasksWithDetails);
   } catch (err) {
     console.error('Error fetching shop tasks:', err);
     res.status(500).json({ error: err.message });
   }
 };
+
 
 export const verifyWorker = async (req, res) => {
   try {

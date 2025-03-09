@@ -1,3 +1,4 @@
+// taskAssignment_model.dart
 class TaskAssignment {
   final String assignmentId;
   final String taskId;
@@ -7,7 +8,7 @@ class TaskAssignment {
   final String status;
   final String? verificationCode;
   final DateTime? verifiedAt;
-  final Map<String, dynamic>? taskDetails; // Add taskDetails field
+  final Map<String, dynamic>? taskDetails;
 
   TaskAssignment({
     required this.assignmentId,
@@ -18,26 +19,31 @@ class TaskAssignment {
     required this.status,
     this.verificationCode,
     this.verifiedAt,
-    this.taskDetails, // Initialize taskDetails
+    this.taskDetails,
   });
 
   factory TaskAssignment.fromJson(Map<String, dynamic> json) {
     return TaskAssignment(
-      assignmentId: json['_id'] as String? ?? '', // Use '_id' instead of 'assignment_id'
-      taskId: json['task_id'] as String? ?? '',
-      workerId: json['worker_id'] as String? ?? '',
-      shopId: json['shop_id'] as String? ?? '',
-      assignedAt: DateTime.parse(json['assignedAt'] as String? ?? DateTime.now().toIso8601String()),
+      // Handle both API formats (camelCase and snake_case)
+      assignmentId: json['assignmentId'] as String? ?? json['_id'] as String? ?? '',
+      taskId: json['taskId'] as String? ?? json['task_id'] as String? ?? '',
+      workerId: json['workerId'] as String? ?? json['worker_id'] as String? ?? '',
+      shopId: json['shopId'] as String? ?? json['shop_id'] as String? ?? '',
+      assignedAt: json['assignedAt'] != null
+          ? DateTime.parse(json['assignedAt'] as String)
+          : DateTime.now(),
       status: json['status'] as String? ?? 'assigned',
       verificationCode: json['verificationCode'] as String?,
-      verifiedAt: json['verifiedAt'] != null ? DateTime.parse(json['verifiedAt'] as String) : null,
+      verifiedAt: json['verifiedAt'] != null
+          ? DateTime.parse(json['verifiedAt'] as String)
+          : null,
       taskDetails: json['taskDetails'] as Map<String, dynamic>?,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      '_id': assignmentId, // Use '_id' instead of 'assignment_id'
+      '_id': assignmentId,
       'task_id': taskId,
       'worker_id': workerId,
       'shop_id': shopId,

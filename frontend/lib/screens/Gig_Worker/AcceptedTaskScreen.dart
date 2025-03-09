@@ -41,8 +41,10 @@ class _AcceptedTaskScreenState extends ConsumerState<AcceptedTaskScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to fetch accepted tasks: $error'),
+          duration: const Duration(seconds: 3),
         ),
       );
+      print('Error details: $error');
     }
   }
 

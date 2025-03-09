@@ -15,6 +15,9 @@ import 'RejectedTaskScreen.dart';
 import 'AcceptedTaskScreen.dart';
 import '../Profile/UpdatePasswordScreen.dart';
 import '../Profile/UpdateProfileScreen.dart';
+// Add leaderboard screen import
+import 'leaderboard_screen.dart'; // Make sure this path is correct
+
 
 class GigWorkerScreen extends ConsumerStatefulWidget {
   final String userEmail;
@@ -40,6 +43,7 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
     'Report',
     'Update Profile',
     'Dashboard', // Changed from 'Welcome' to 'Dashboard'
+    'Leaderboard', // Add Leaderboard title
   ];
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -67,6 +71,7 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
       const ReportSubmissionScreen(taskId: '1', workerId: '1'),
       UpdateProfileScreen(userEmail: widget.userEmail),
       _buildWelcomeScreen(), // Added welcome screen
+      LeaderboardScreen(userEmail: widget.userEmail), // Add Leaderboard screen
     ];
 
     // Fetch user name when the screen initializes
@@ -220,7 +225,7 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Action Buttons
+            // Action Buttons - First Row
             Row(
               children: [
                 Expanded(
@@ -253,6 +258,7 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
 
             const SizedBox(height: 16),
 
+            // Action Buttons - Second Row
             Row(
               children: [
                 Expanded(
@@ -279,6 +285,30 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
                       });
                     },
                   ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Action Buttons - Third Row with Leaderboard
+            Row(
+              children: [
+                Expanded(
+                  child: _buildActionButton(
+                    'Leaderboard',
+                    Icons.leaderboard,
+                    Colors.green.shade600,
+                        () {
+                      setState(() {
+                        _selectedIndex = 6; // Navigate to Leaderboard
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Container(), // Empty container for balance
                 ),
               ],
             ),
@@ -847,6 +877,17 @@ class _GigWorkerScreenState extends ConsumerState<GigWorkerScreen> {
                   onTap: () {
                     setState(() {
                       _selectedIndex = 3;
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                // Add Leaderboard item below Report
+                _buildDrawerItem(
+                  icon: Icons.leaderboard,
+                  title: 'Leaderboard',
+                  onTap: () {
+                    setState(() {
+                      _selectedIndex = 6; // Navigate to Leaderboard screen
                     });
                     Navigator.pop(context);
                   },
