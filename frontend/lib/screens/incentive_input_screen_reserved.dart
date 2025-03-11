@@ -357,7 +357,7 @@ class _RatingIncentiveInputScreenState extends ConsumerState<RatingIncentiveInpu
                 TextFormField(
                   controller: _incentiveController,
                   decoration: const InputDecoration(
-                    labelText: 'Amount (\$)',
+                    labelText: 'Amount ("BDT")',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.attach_money),
                   ),

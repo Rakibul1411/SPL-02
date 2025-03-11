@@ -3,7 +3,7 @@ import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { submitReport } from '../controller/reportController.js';
+import { submitReport, getReportsByCompany } from '../controller/reportController.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,5 +41,8 @@ router.post('/submitReport', upload.fields([
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 });
+
+// Get reports by company ID
+router.get('/company/:userEmail', getReportsByCompany);
 
 export default router;

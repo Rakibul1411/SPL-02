@@ -1,6 +1,4 @@
 import IncentiveAndRating from "../models/incentive&ratingTable.js";
-import User from "../models/userTable.js";
-import Task from "../models/taskTable.js";
 import mongoose from "mongoose";
 
 // Validate MongoDB ObjectId
@@ -281,132 +279,87 @@ export const getAnalytics = async (req, res) => {
   }
 };
 
-
-// Get leaderboard data - top performers and requesting user
-export const getLeaderboard = async (req, res) => {
+// Add combined rating and incentive
+export const addCombined = async (req, res) => {
+    console.log("controller");
   try {
-    const { email } = req.params;
+    const { workerId, taskId, rating, feedback, ratedBy, amount } = req.body;
 
-    // Debug info
-    console.log(`Received leaderboard request for email: ${email}`);
-
-    if (!email) {
-      return res.status(400).json({ error: "Valid user email is required" });
+    // Validation
+    if (!workerId || !taskId) {
+      return res.status(400).json({ error: "WorkerId and taskId are required" });
     }
 
-    // Find the user by email
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      console.log(`User not found with email: ${email}`);
-      return res.status(404).json({ error: "User not found with the provided email" });
+    if (!isValidObjectId(workerId) || !isValidObjectId(taskId)) {
+      return res.status(400).json({ error: "Invalid workerId or taskId format" });
     }
 
-    const userId = user._id;
-    console.log(`Found user with ID: ${userId}`);
+    // Check if at least one of rating or amount is provided
+    if ((rating === undefined || rating === null) && (amount === undefined || amount === null)) {
+      return res.status(400).json({ error: "At least one of rating or amount must be provided" });
+    }
 
-    // Step 1: Get all users with role "Gig Worker"
-    const allUsers = await User.find({ role: "Gig Worker" }, '_id name email latitude longitude');
-    console.log(`Found ${allUsers.length} gig workers`);
+    // Validate rating if provided
+    if (rating !== undefined && rating !== null) {
+      const ratingNum = Number(rating);
+      if (isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+        return res.status(400).json({ error: "Rating must be a number between 1 and 5" });
+      }
 
-    // Step 2: Process all users to calculate their metrics
-    const leaderboardData = await Promise.all(
-      allUsers.map(async (user) => {
-        try {
-          // Get user's ratings (if any)
-          const ratings = await IncentiveAndRating.find({
-            workerId: user._id,
-            rating: { $exists: true, $ne: null }
-          });
+      if (!ratedBy || !isValidObjectId(ratedBy)) {
+        return res.status(400).json({ error: "Valid ratedBy user ID is required for ratings" });
+      }
+    }
 
-          // Get user's incentives (if any)
-          const incentives = await IncentiveAndRating.find({
-            workerId: user._id,
-            amount: { $exists: true, $gt: 0 }
-          });
+    // Validate amount if provided
+    if (amount !== undefined && amount !== null) {
+      if (isNaN(amount) || amount <= 0) {
+        return res.status(400).json({ error: "Amount must be a positive number" });
+      }
+    }
 
-          // Calculate metrics
-          const avgRating = ratings.length > 0
-            ? ratings.reduce((sum, item) => sum + (item.rating || 0), 0) / ratings.length
-            : 0; // Default to 0 if no ratings
+    // Find existing entry or create new one using findOneAndUpdate with upsert
+    const update = {};
 
-          const totalAmount = incentives.length > 0
-            ? incentives.reduce((sum, item) => sum + (item.amount || 0), 0)
-            : 0;
+    // Set rating fields if provided
+    if (rating !== undefined && rating !== null) {
+      update.rating = Number(rating);
+      update.feedback = feedback || "";
+      update.ratedBy = ratedBy;
+    }
 
-          // Get the count of unique tasks (combining ratings and incentives)
-          const taskIds = new Set([
-            ...ratings.map(r => r.taskId?.toString() || ''),
-            ...incentives.map(i => i.taskId?.toString() || '')
-          ]);
-          // Remove empty strings (null taskIds)
-          taskIds.delete('');
+    // Set amount if provided
+    if (amount !== undefined && amount !== null) {
+      update.amount = Number(amount);
+      update.issuedAt = new Date();
+    }
 
-          return {
-            userId: user._id.toString(), // Convert ObjectId to string
-            name: user.name || "Unknown",
-            email: user.email || "",
-            avgRating: parseFloat(avgRating.toFixed(1)),
-            totalAmount: parseFloat(totalAmount.toFixed(2)),
-            totalTasks: taskIds.size,
-            latitude: user.latitude || 0,
-            longitude: user.longitude || 0
-          };
-        } catch (err) {
-          console.error(`Error processing user ${user._id}: ${err}`);
-          // Return a default object with 0 values if there's an error
-          return {
-            userId: user._id.toString(),
-            name: user.name || "Unknown",
-            email: user.email || "",
-            avgRating: 0,
-            totalAmount: 0,
-            totalTasks: 0,
-            latitude: 0,
-            longitude: 0
-          };
-        }
-      })
-    );
+    // Add timestamps
+    update.updatedAt = new Date();
+    if (!update.createdAt) {
+      update.createdAt = new Date();
+    }
 
-    // Ensure we have valid data
-    console.log(`Processed ${leaderboardData.length} leaderboard entries`);
-
-    // Step 3: Sort users by avgRating (descending) for ranking
-    leaderboardData.sort((a, b) => b.avgRating - a.avgRating);
-
-    // Step 4: Assign positions
-    leaderboardData.forEach((user, index) => {
-      user.position = index + 1;
-    });
-
-    // Step 5: Get top 5 users (or all if less than 5)
-    const topCount = Math.min(5, leaderboardData.length);
-    const topUsers = leaderboardData.slice(0, topCount);
-
-    // Step 6: Check if the requesting user is in the data
-    const requestingUserIndex = leaderboardData.findIndex(
-      user => user.email === email
-    );
-
-    let response = {
-      topUsers,
-      userRank: requestingUserIndex >= 0 ? leaderboardData[requestingUserIndex].position : 0,
-      currentUser: requestingUserIndex >= 0 ? leaderboardData[requestingUserIndex] : null,
+    const options = {
+      upsert: true,
+      new: true,
+      setDefaultsOnInsert: true
     };
 
-    // If user is not in top 5, include their data
-    if (requestingUserIndex >= topCount) {
-      response.currentUser = leaderboardData[requestingUserIndex];
-    }
+    const result = await IncentiveAndRating.findOneAndUpdate(
+      { workerId, taskId },
+      update,
+      options
+    );
 
-    console.log(`Sending response with ${topUsers.length} top users`);
-    res.status(200).json(response);
-
+    res.status(201).json({
+      message: "Data saved successfully",
+      data: result
+    });
   } catch (error) {
-    console.error("Error generating leaderboard:", error);
+    console.error("Error saving combined data:", error);
     res.status(500).json({
-      error: "Failed to generate leaderboard",
+      error: "Failed to save data",
       details: error.message
     });
   }

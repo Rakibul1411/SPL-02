@@ -16,6 +16,7 @@ import 'package:frontend/screens/Map/map_screen.dart';
 import 'package:frontend/screens/Authentication/registration_screen.dart';
 import 'package:frontend/screens/Report/report_submission_screen.dart';
 import 'package:frontend/screens/incentive_and_rating_input_screen.dart';
+import 'package:frontend/screens/incentive_and_rating_screen.dart';
 // Adjust the import path as needed
 
 void main() {
@@ -42,11 +43,11 @@ class MyApp extends StatelessWidget {
       //home: const LaunchScreen(),
       //home: AcceptedTaskScreen(task: '1', userEmail: 'natiqakif@gmail.com'),
       //home: const ShopManager(userEmail: 'rakibul-14-2021511350@it.du.ac.bd'),
-      //home: const CompanyScreen(userEmail: 'bsse1408@iit.du.ac.bd'),
-      home: const ShopManagerScreen(userEmail: 'rakibul-14-2021511350@it.du.ac.bd'),
+      home: const CompanyScreen(userEmail: 'bsse1408@iit.du.ac.bd'),
+      //home: const ShopManagerScreen(userEmail: 'rakibul-14-2021511350@it.du.ac.bd'),
       //home: const GigWorkerScreen(userEmail: 'mdrakibul11611@gmail.com'),
       //home: const GigWorkerScreen(userEmail: 'continuousvariables@gmail.com'),
-      //  home: const IncentiveAndRatingScreen(),
+      //home: const IncentiveAndRatingScreen(),
       //home: const RatingIncentiveInputScreen(),
       //home: const CreateTaskScreen(userEmail: 'bsse1411@iit.du.ac.bd',)home: const ResetPasswordScreen(email: 'email'),
       debugShowCheckedModeBanner: false, // Or your home screen

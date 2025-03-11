@@ -88,7 +88,7 @@ class TaskDetailsScreen extends StatelessWidget {
             const SizedBox(height: 16),
             _buildDetailRow(
               icon: Icons.attach_money,
-              text: 'Incentive: \$${task.incentive.toStringAsFixed(2)}',
+              text: 'Incentive: "BDT"${task.incentive.toStringAsFixed(2)}',
               color: Colors.green[700]!,
             ),
             const SizedBox(height: 16),

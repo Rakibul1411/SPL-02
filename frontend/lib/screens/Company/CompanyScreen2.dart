@@ -1,27 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/screens/Company/report_list_screen.dart';
+import 'package:provider/provider.dart' as provider;
+import 'AvailableShopScreen.dart';
+import 'FinishedTasksScreen.dart';
 import '../OtherScreens/launch_page_screen.dart';
 import '../Profile/profile_details_screen.dart';
-import 'assign_task_survey_list_screen.dart';
-import 'settings_screen.dart';
-import 'previous_survey_list_screen.dart';
-import '../../providers/authProvider.dart';
+import 'AcceptedTasksListScreen.dart';
+import 'AssignTasksScreen.dart';
+import 'RejectedTasksListScreen.dart';
+import 'create_task_screen.dart';
+import 'task_list_screen.dart';
 import '../../providers/profile_provider.dart';
+import '../../providers/authProvider.dart';
 import '../Profile/UpdatePasswordScreen.dart';
 import '../Profile/UpdateProfileScreen.dart';
 
-class ShopManagerScreen extends StatefulWidget {
+class CompanyScreen extends ConsumerStatefulWidget {
   final String userEmail;
 
-  const ShopManagerScreen({super.key, required this.userEmail});
+  const CompanyScreen({super.key, required this.userEmail});
 
   @override
-  _ShopManagerScreenState createState() => _ShopManagerScreenState();
+  _CompanyScreenState createState() => _CompanyScreenState();
 }
 
-class _ShopManagerScreenState extends State<ShopManagerScreen> {
-  int _selectedIndex = 4; // Dashboard screen
-  String _userName = "";
+class _CompanyScreenState extends ConsumerState<CompanyScreen> {
+  int _selectedIndex = 5; // Dashboard screen
+  String _companyName = "";
   bool _isLoading = true;
 
   late final List<Widget> _screens;
@@ -39,30 +45,31 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
   final Color _subtextColor = const Color(0xFF6B7280); // Gray 500
 
   final List<String> _screenTitles = [
-    'Profile Details',
-    'Assign Survey List',
+    'Create Task',
+    'All Tasks',
+    'Gig Worker Report',
+    'Company Details',
     'Settings',
-    'Previous Survey List',
     'Dashboard',
   ];
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
     super.initState();
     _profileProvider = ProfileProvider();
     _screens = [
-      ChangeNotifierProvider.value(
+      CreateTaskScreen(userEmail: widget.userEmail),
+      TaskListScreen(userEmail: widget.userEmail),
+      const Center(child: Text('Gig Worker Report List')),
+      provider.ChangeNotifierProvider.value(
         value: _profileProvider,
         child: ProfileDetailsScreen(userEmail: widget.userEmail),
       ),
-      AssignSurveyListScreen(email: widget.userEmail,),
       _buildSettingsScreen(),
-      PreviousSurveyListScreen(userEmail: widget.userEmail,),
       _buildDashboardScreen(),
     ];
-
-    // Fetch user name when the screen initializes
-    _fetchUserName();
+    _fetchCompanyDetails();
   }
 
   Widget _buildDashboardScreen() {
@@ -88,7 +95,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                       radius: 40,
                       backgroundColor: Colors.white.withOpacity(0.2),
                       child: const Icon(
-                        Icons.store,
+                        Icons.business,
                         size: 40,
                         color: Colors.white,
                       ),
@@ -107,7 +114,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            _userName,
+                            _companyName,
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -134,9 +141,9 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
 
             const SizedBox(height: 24),
 
-            // Survey Management Section
+            // Task Management Section
             Text(
-              'Survey Management',
+              'Task Management',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -145,28 +152,118 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Survey Cards in a Row
+            // Task Cards in a Row
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
                   _buildTaskCard(
-                    'Assign Survey',
-                    Icons.assignment_outlined,
+                    'Create Task',
+                    Icons.add_task,
                     _accentColor,
                         () {
                       setState(() {
-                        _selectedIndex = 1; // Navigate to Assign Survey screen
+                        _selectedIndex = 0; // Navigate to Create Task screen
                       });
                     },
                   ),
                   _buildTaskCard(
-                    'Previous Surveys',
-                    Icons.history_outlined,
+                    'All Tasks',
+                    Icons.list_alt_outlined,
                     Colors.indigo,
                         () {
                       setState(() {
-                        _selectedIndex = 3; // Navigate to Previous Surveys screen
+                        _selectedIndex = 1; // Navigate to All Tasks screen
+                      });
+                    },
+                  ),
+                  _buildTaskCard(
+                    'Accepted',
+                    Icons.check_circle_outline,
+                    Colors.green,
+                        () =>
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                AcceptedTasksListScreen(userEmail: widget
+                                    .userEmail),
+                          ),
+                        ),
+                  ),
+                  _buildTaskCard(
+                    'Rejected',
+                    Icons.cancel_outlined,
+                    Colors.red,
+                        () =>
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                RejectedTasksListScreen(userEmail: widget
+                                    .userEmail),
+                          ),
+                        ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildTaskCard(
+                    'Assign Tasks',
+                    Icons.assignment_turned_in_outlined,
+                    Colors.amber.shade700,
+                        () =>
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                AssignTasksScreen(userEmail: widget.userEmail),
+                          ),
+                        ),
+                  ),
+                  _buildTaskCard(
+                    'Finished',
+                    Icons.done_all,
+                    Colors.purple,
+                        () =>
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                FinishedTasksScreen(userEmail: widget
+                                    .userEmail),
+                          ),
+                        ),
+                  ),
+                  _buildTaskCard(
+                    'Shop',
+                    Icons.store_outlined,
+                    Colors.blue.shade400,
+                        () =>
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                AvailableShopScreen(userEmail: widget
+                                    .userEmail),
+                          ),
+                        ),
+                  ),
+                  _buildTaskCard(
+                    'Reports',
+                    Icons.assessment_outlined,
+                    Colors.teal,
+                        () {
+                      setState(() {
+                        _selectedIndex =
+                        2; // Navigate to Gig Worker Report screen
                       });
                     },
                   ),
@@ -192,12 +289,12 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
               children: [
                 Expanded(
                   child: _buildActionButton(
-                    'Profile Details',
-                    Icons.person_outline,
+                    'Company Profile',
+                    Icons.business_outlined,
                     _secondaryColor,
                         () {
                       setState(() {
-                        _selectedIndex = 0; // Navigate to Profile Details
+                        _selectedIndex = 3; // Navigate to Company Details
                       });
                     },
                   ),
@@ -210,7 +307,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                     Colors.amber.shade700,
                         () {
                       setState(() {
-                        _selectedIndex = 2; // Navigate to Settings
+                        _selectedIndex = 4; // Navigate to Settings
                       });
                     },
                   ),
@@ -231,7 +328,8 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => UpdatePasswordScreen(userEmail: widget.userEmail),
+                          builder: (context) =>
+                              UpdatePasswordScreen(userEmail: widget.userEmail),
                         ),
                       );
                     },
@@ -247,7 +345,8 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => UpdateProfileScreen(userEmail: widget.userEmail),
+                          builder: (context) =>
+                              UpdateProfileScreen(userEmail: widget.userEmail),
                         ),
                       );
                     },
@@ -270,9 +369,32 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Task Analytics',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: _textColor,
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.refresh, color: _primaryColor),
+                          onPressed: () {},
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 16),
-                    
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildAnalyticsItem('Active', '12', Colors.blue),
+                        _buildAnalyticsItem('Completed', '28', Colors.green),
+                        _buildAnalyticsItem('Pending', '5', Colors.orange),
+                      ],
+                    ),
                     const SizedBox(height: 16),
                     // Placeholder for a chart
                     Container(
@@ -283,7 +405,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                       ),
                       child: Center(
                         child: Text(
-                          'Survey Performance Chart',
+                          'Task Performance Chart',
                           style: TextStyle(
                             color: _subtextColor,
                             fontWeight: FontWeight.w500,
@@ -338,7 +460,8 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
   }
 
   // Helper method to build task cards for the dashboard
-  Widget _buildTaskCard(String title, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildTaskCard(String title, IconData icon, Color color,
+      VoidCallback onTap) {
     return Container(
       width: 130,
       margin: const EdgeInsets.only(right: 12),
@@ -380,7 +503,8 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
   }
 
   // Helper method to build action buttons for the dashboard
-  Widget _buildActionButton(String title, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildActionButton(String title, IconData icon, Color color,
+      VoidCallback onTap) {
     return Card(
       elevation: 2,
       shadowColor: Colors.black.withOpacity(0.1),
@@ -416,7 +540,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
     );
   }
 
-  Future<void> _fetchUserName() async {
+  Future<void> _fetchCompanyDetails() async {
     setState(() {
       _isLoading = true;
     });
@@ -424,66 +548,69 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
     try {
       await _profileProvider.fetchUserProfile(widget.userEmail);
       setState(() {
-        _userName = _profileProvider.name ?? widget.userEmail;
+        _companyName = _profileProvider.name ?? "Company";
         _isLoading = false;
       });
     } catch (error) {
-      print('Error fetching user name: $error');
+      print('Error fetching company details: $error');
       setState(() {
-        _userName = widget.userEmail;
+        _companyName = "Company";
         _isLoading = false;
       });
     }
   }
 
-  void _handleLogout(BuildContext context) async {
+  // Method to handle logout
+  void _logout(BuildContext context) async {
+    // Show confirmation dialog
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: _subtextColor),
+      builder: (context) =>
+          AlertDialog(
+            title: const Text('Confirm Logout'),
+            content: const Text('Are you sure you want to logout?'),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final authProvider = AuthProvider();
-              try {
-                await authProvider.logout();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LaunchScreen(),
-                  ),
-                );
-              } catch (error) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Logout failed: $error')),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _primaryColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(color: _subtextColor),
+                ),
               ),
-            ),
-            child: const Text(
-              'Logout',
-              style: TextStyle(color: Colors.white),
-            ),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  final authProvider = AuthProvider();
+                  try {
+                    await authProvider.logout();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LaunchScreen(),
+                      ),
+                    );
+                  } catch (error) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Logout failed: $error')),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Logout',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -533,7 +660,8 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => UpdatePasswordScreen(userEmail: widget.userEmail),
+                        builder: (context) =>
+                            UpdatePasswordScreen(userEmail: widget.userEmail),
                       ),
                     );
                   },
@@ -550,7 +678,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                     ),
                   ),
                   subtitle: Text(
-                    'Edit your personal information',
+                    'Edit your company information',
                     style: TextStyle(
                       color: _subtextColor,
                     ),
@@ -560,14 +688,16 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => UpdateProfileScreen(userEmail: widget.userEmail),
+                        builder: (context) =>
+                            UpdateProfileScreen(userEmail: widget.userEmail),
                       ),
                     );
                   },
                 ),
                 Divider(height: 1, color: Colors.grey.shade200),
                 ListTile(
-                  leading: Icon(Icons.notifications_outlined, color: Colors.amber.shade700),
+                  leading: Icon(Icons.notifications_outlined,
+                      color: Colors.amber.shade700),
                   title: Text(
                     'Notifications',
                     style: TextStyle(
@@ -590,7 +720,8 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                 ),
                 Divider(height: 1, color: Colors.grey.shade200),
                 ListTile(
-                  leading: Icon(Icons.dark_mode_outlined, color: Colors.indigo.shade400),
+                  leading: Icon(
+                      Icons.dark_mode_outlined, color: Colors.indigo.shade400),
                   title: Text(
                     'Dark Mode',
                     style: TextStyle(
@@ -638,7 +769,8 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                 ),
                 Divider(height: 1, color: Colors.grey.shade200),
                 ListTile(
-                  leading: Icon(Icons.info_outline, color: Colors.blue.shade300),
+                  leading: Icon(
+                      Icons.info_outline, color: Colors.blue.shade300),
                   title: Text(
                     'About',
                     style: TextStyle(
@@ -675,13 +807,14 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
         backgroundColor: _primaryColor,
         elevation: 0,
         actions: [
-          if (_selectedIndex == 4) // Only show on Dashboard
+          if (_selectedIndex == 5) // Only show on Dashboard
             IconButton(
-              icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+              icon: const Icon(
+                  Icons.notifications_outlined, color: Colors.white),
               onPressed: () {},
             ),
         ],
-        leading: _selectedIndex == 4
+        leading: _selectedIndex == 5
             ? IconButton(
           icon: const Icon(Icons.menu, color: Colors.white),
           onPressed: () {
@@ -692,7 +825,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             setState(() {
-              _selectedIndex = 4; // Return to Dashboard screen
+              _selectedIndex = 5; // Return to Dashboard screen
             });
           },
         ),
@@ -724,13 +857,14 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+                          border: Border.all(color: Colors.white.withOpacity(
+                              0.3), width: 2),
                         ),
                         child: CircleAvatar(
                           radius: 40,
                           backgroundColor: Colors.white.withOpacity(0.2),
                           child: const Icon(
-                            Icons.store,
+                            Icons.business,
                             size: 40,
                             color: Colors.white,
                           ),
@@ -742,7 +876,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                         color: Colors.white,
                       )
                           : Text(
-                        _userName,
+                        _companyName,
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -769,17 +903,17 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                   title: 'Dashboard',
                   onTap: () {
                     setState(() {
-                      _selectedIndex = 4;
+                      _selectedIndex = 5;
                     });
                     Navigator.pop(context);
                   },
                 ),
                 _buildDrawerItem(
-                  icon: Icons.person_outline,
-                  title: 'Profile Details',
+                  icon: Icons.business_outlined,
+                  title: 'Company Details',
                   onTap: () {
                     setState(() {
-                      _selectedIndex = 0;
+                      _selectedIndex = 3;
                     });
                     Navigator.pop(context);
                   },
@@ -787,7 +921,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                 ExpansionTile(
                   leading: const Icon(Icons.task_outlined, color: Colors.white),
                   title: const Text(
-                    'Survey Management',
+                    'Tasks Management',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.white,
@@ -798,8 +932,18 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                   collapsedIconColor: Colors.white,
                   children: [
                     _buildNestedDrawerItem(
-                      icon: Icons.assignment_outlined,
-                      title: 'Assign Survey',
+                      icon: Icons.add_task,
+                      title: 'Create Task',
+                      onTap: () {
+                        setState(() {
+                          _selectedIndex = 0;
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                    _buildNestedDrawerItem(
+                      icon: Icons.list_alt_outlined,
+                      title: 'All Tasks',
                       onTap: () {
                         setState(() {
                           _selectedIndex = 1;
@@ -808,23 +952,102 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                       },
                     ),
                     _buildNestedDrawerItem(
-                      icon: Icons.history_outlined,
-                      title: 'Previous Surveys',
+                      icon: Icons.check_circle_outline,
+                      title: 'Accepted Tasks',
                       onTap: () {
-                        setState(() {
-                          _selectedIndex = 3;
-                        });
                         Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AcceptedTasksListScreen(
+                                userEmail: widget.userEmail),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildNestedDrawerItem(
+                      icon: Icons.cancel_outlined,
+                      title: 'Rejected Tasks',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => RejectedTasksListScreen(
+                                userEmail: widget.userEmail),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildNestedDrawerItem(
+                      icon: Icons.assignment_turned_in_outlined,
+                      title: 'Assign Tasks',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                AssignTasksScreen(userEmail: widget.userEmail),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildNestedDrawerItem(
+                      icon: Icons.done_all,
+                      title: 'Finished Tasks',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => FinishedTasksScreen(
+                                userEmail: widget.userEmail),
+                          ),
+                        );
                       },
                     ),
                   ],
+                ),
+                _buildDrawerItem(
+                  icon: Icons.report_outlined,
+                  title: 'Gig Worker Report',
+                  onTap: () {
+                    setState(() {
+                      _selectedIndex = 2;
+                    });
+                    // Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ReportListScreen(
+                          userEmail: 'bsse1408@iit.du.ac.bd',
+                          scaffoldKey: scaffoldKey, // Pass the scaffoldKey here
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.store_outlined,
+                  title: 'Available Shop',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            AvailableShopScreen(userEmail: widget.userEmail),
+                      ),
+                    );
+                    Navigator.pop(context);
+                  },
                 ),
                 _buildDrawerItem(
                   icon: Icons.settings_outlined,
                   title: 'Settings',
                   onTap: () {
                     setState(() {
-                      _selectedIndex = 2;
+                      _selectedIndex = 4;
                     });
                     Navigator.pop(context);
                   },
@@ -841,9 +1064,10 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                   title: 'Logout',
                   onTap: () {
                     Navigator.pop(context);
-                    _handleLogout(context);
+                    _logout(context);
                   },
                 ),
+                // Add some bottom padding to ensure all items are visible
                 const SizedBox(height: 16),
               ],
             ),
@@ -877,7 +1101,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
     );
   }
 
-  // Helper method to build nested drawer items
+// Helper method to build nested drawer items (with padding)
   Widget _buildNestedDrawerItem({
     required IconData icon,
     required String title,
