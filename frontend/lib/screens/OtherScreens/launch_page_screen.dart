@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../Authentication/login_screen.dart';
-import '../Authentication/registration_screen.dart';
+import 'user_selection_screen.dart';
 
 class LaunchScreen extends StatefulWidget {
   const LaunchScreen({super.key});
@@ -14,32 +14,39 @@ class _LaunchScreenState extends State<LaunchScreen> with SingleTickerProviderSt
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  late Animation<double> _scaleAnimation;
+  bool _isHoveringGetStarted = false;
+  bool _isHoveringLogin = false;
 
   @override
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1800),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeInOut),
+        curve: const Interval(0.0, 0.7, curve: Curves.easeOut),
       ),
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
+      begin: const Offset(0, 0.25),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: const Interval(0.3, 0.9, curve: Curves.easeInOut),
+        curve: const Interval(0.3, 0.9, curve: Curves.fastOutSlowIn),
+      ),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.4, 1.0, curve: Curves.easeOutBack),
       ),
     );
 
@@ -57,97 +64,160 @@ class _LaunchScreenState extends State<LaunchScreen> with SingleTickerProviderSt
     return Scaffold(
       body: Stack(
         children: [
-          // Background with more subtle gradient
+          // Background Color
           Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color(0xFF1a237e), // Deeper blue
-                  Color(0xFF0277bd), // Rich medium blue
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
+            color: Color(0xFF4272FF), // Apply the #4272FF color (blue)
           ),
-          // Subtle pattern overlay
-          Opacity(
-            opacity: 0.05,
+
+          // Decorative Elements
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.1,
+            left: -50,
             child: Container(
+              width: 150,
+              height: 150,
               decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: NetworkImage('https://www.transparenttextures.com/patterns/diamond-upholstery.png'),
-                  repeat: ImageRepeat.repeat,
-                ),
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.1),
               ),
             ),
           ),
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.3,
+            right: -60,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.08),
+              ),
+            ),
+          ),
+
+          // Main Content
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
                 children: [
                   const Spacer(),
-                  // Logo and branding section
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Column(
-                      children: [
-                        Hero(
-                          tag: 'app-logo',
-                          child: Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [
-                                  Color(0xFF2979ff),
-                                  Color(0xFF00b0ff),
+                  // Logo and Branding Section
+                  ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Column(
+                        children: [
+                          Hero(
+                            tag: 'app-logo',
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 8),
+                                    spreadRadius: 2,
+                                  ),
                                 ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
-                                  blurRadius: 15,
-                                  offset: Offset(0, 8),
-                                ),
-                              ],
+                              child: const Icon(
+                                Icons.insights,
+                                size: 50,
+                                color: Colors.blueGrey,
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.insights,
-                              size: 60,
+                          ),
+                          const SizedBox(height: 24.0),
+                          Text(
+                            'InsightHive',
+                            style: GoogleFonts.poppins(
+                              fontSize: 36.0,
+                              fontWeight: FontWeight.w700,
                               color: Colors.white,
+                              letterSpacing: 1.2,
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 32.0),
-                        Text(
-                          'InsightHive',
-                          style: GoogleFonts.poppins(
-                            fontSize: 36.0,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            letterSpacing: 1.2,
+                          const SizedBox(height: 12.0),
+                          Text(
+                            'Your Pathway to Achievement',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16.0,
+                              color: Colors.white.withOpacity(0.9),
+                              letterSpacing: 0.5,
+                              height: 1.5,
+                              fontWeight: FontWeight.w300,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 16.0),
-                        Text(
-                          'Your Pathway to Achievement',
-                          style: GoogleFonts.inter(
-                            fontSize: 18.0,
-                            color: Colors.white.withOpacity(0.85),
-                            letterSpacing: 0.5,
-                            height: 1.5,
+                          const SizedBox(height: 24.0),
+
+                          // Added Feature Row
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildFeatureIcon(Icons.connect_without_contact),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Connect',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14.0,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                width: 4,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.6),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              _buildFeatureIcon(Icons.people_alt_outlined),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Collaborate',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14.0,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                width: 4,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.6),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              _buildFeatureIcon(Icons.emoji_events_outlined),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Succeed',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14.0,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   const Spacer(flex: 2),
-                  // Buttons section
+                  // Buttons Section
                   SlideTransition(
                     position: _slideAnimation,
                     child: FadeTransition(
@@ -158,43 +228,102 @@ class _LaunchScreenState extends State<LaunchScreen> with SingleTickerProviderSt
                             text: 'Get Started',
                             onPressed: () => Navigator.push(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => const RegistrationScreen(),
+                              PageRouteBuilder(
+                                pageBuilder: (context, animation, secondaryAnimation) => const UserSelectionScreen(),
+                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                  const begin = Offset(1.0, 0.0);
+                                  const end = Offset.zero;
+                                  const curve = Curves.easeInOutCubic;
+                                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                                  var offsetAnimation = animation.drive(tween);
+                                  return SlideTransition(position: offsetAnimation, child: child);
+                                },
+                                transitionDuration: const Duration(milliseconds: 600),
                               ),
                             ),
                             isPrimary: true,
+                            onHover: (isHovering) {
+                              setState(() {
+                                _isHoveringGetStarted = isHovering;
+                              });
+                            },
+                            isHovering: _isHoveringGetStarted,
                           ),
                           const SizedBox(height: 16.0),
                           _buildButton(
                             text: 'Log In',
                             onPressed: () => Navigator.push(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => const LoginScreen(),
+                              PageRouteBuilder(
+                                pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                  const begin = Offset(0.0, 1.0);
+                                  const end = Offset.zero;
+                                  const curve = Curves.easeInOutCubic;
+                                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                                  var offsetAnimation = animation.drive(tween);
+                                  return SlideTransition(position: offsetAnimation, child: child);
+                                },
+                                transitionDuration: const Duration(milliseconds: 600),
                               ),
                             ),
                             isPrimary: false,
+                            onHover: (isHovering) {
+                              setState(() {
+                                _isHoveringLogin = isHovering;
+                              });
+                            },
+                            isHovering: _isHoveringLogin,
                           ),
                         ],
                       ),
                     ),
                   ),
                   const Spacer(),
-                  // Terms and conditions text
+                  // Terms and Privacy
                   FadeTransition(
                     opacity: _fadeAnimation,
-                    child: Text(
-                      'By continuing, you agree to our\nTerms of Service and Privacy Policy',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(
-                        fontSize: 13.0,
-                        color: Colors.white.withOpacity(0.7),
-                        height: 1.6,
-                        letterSpacing: 0.3,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.15),
+                          width: 1,
+                        ),
+                      ),
+                      child: RichText(
+                        textAlign: TextAlign.center,
+                        text: TextSpan(
+                          style: GoogleFonts.poppins(
+                            fontSize: 12.0,
+                            color: Colors.white.withOpacity(0.85),
+                            height: 1.6,
+                          ),
+                          children: [
+                            const TextSpan(text: 'By continuing, you agree to our '),
+                            TextSpan(
+                              text: 'Terms of Service',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                            const TextSpan(text: ' and '),
+                            TextSpan(
+                              text: 'Privacy Policy',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32.0),
+                  const SizedBox(height: 24.0),
                 ],
               ),
             ),
@@ -204,63 +333,93 @@ class _LaunchScreenState extends State<LaunchScreen> with SingleTickerProviderSt
     );
   }
 
+  Widget _buildFeatureIcon(IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(
+        icon,
+        size: 14,
+        color: Colors.white,
+      ),
+    );
+  }
+
   Widget _buildButton({
     required String text,
     required VoidCallback onPressed,
     required bool isPrimary,
+    required Function(bool) onHover,
+    required bool isHovering,
   }) {
-    return Container(
-      width: double.infinity,
-      height: 56,
-      decoration: isPrimary
-          ? BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0xFF2979ff).withOpacity(0.3),
-            blurRadius: 12,
-            offset: Offset(0, 6),
+    return MouseRegion(
+      onEnter: (_) => onHover(true),
+      onExit: (_) => onHover(false),
+      cursor: SystemMouseCursors.click,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        width: double.infinity,
+        height: 56,
+        decoration: isPrimary
+            ? BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          color: isHovering ? Color(0xFF3270FF) : Color(0xFF4272FF), // Apply #4272FF and hover effect
+          boxShadow: [
+            BoxShadow(
+              color: isHovering ? Color(0xFF3270FF).withOpacity(0.7) : Color(0xFF4272FF).withOpacity(0.3),
+              blurRadius: isHovering ? 15 : 10,
+              offset: const Offset(0, 8),
+              spreadRadius: 2,
+            ),
+          ],
+        )
+            : BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          color: isHovering ? Colors.grey[600] : Colors.grey[700],
+          border: Border.all(
+            color: isHovering ? Colors.white : Colors.white.withOpacity(0.5),
+            width: 1.5,
           ),
-        ],
-      )
-          : null,
-      child: isPrimary
-          ? ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28.0),
-          ),
-          elevation: 0,
-          backgroundColor: Colors.white,
+          boxShadow: isHovering
+              ? [
+            BoxShadow(
+              color: Colors.white.withOpacity(0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ]
+              : [],
         ),
-        child: Text(
-          text,
-          style: GoogleFonts.inter(
-            fontSize: 16.0,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF1a237e),
-            letterSpacing: 0.5,
-          ),
-        ),
-      )
-          : OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          side: BorderSide(color: Colors.white.withOpacity(0.8), width: 2),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28.0),
-          ),
-        ),
-        child: Text(
-          text,
-          style: GoogleFonts.inter(
-            fontSize: 16.0,
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(30),
+            onTap: onPressed,
+            splashColor: Colors.white.withOpacity(0.1),
+            highlightColor: Colors.transparent,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  text,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16.0,
+                    fontWeight: isPrimary ? FontWeight.w600 : FontWeight.w500,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  isPrimary ? Icons.arrow_forward_rounded : Icons.login_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ],
+            ),
           ),
         ),
       ),

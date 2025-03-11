@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../providers/profile_provider.dart';
 
 class ProfileDetailsScreen extends StatefulWidget {
@@ -8,10 +9,10 @@ class ProfileDetailsScreen extends StatefulWidget {
   const ProfileDetailsScreen({super.key, required this.userEmail});
 
   @override
-  _DashboardScreenState createState() => _DashboardScreenState();
+  _ProfileDetailsScreenState createState() => _ProfileDetailsScreenState();
 }
 
-class _DashboardScreenState extends State<ProfileDetailsScreen> {
+class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
   @override
   void initState() {
     super.initState();
@@ -24,28 +25,20 @@ class _DashboardScreenState extends State<ProfileDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Profile Details',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 20, // Slightly larger font for mobile
-          ),
-        ),
-        backgroundColor: Colors.blue,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () {
-              final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
-              profileProvider.clearProfile();
-              Navigator.pop(context);
-            },
-          ),
-        ],
-      ),
+      backgroundColor: Colors.grey.shade100, // Light background color
+      // appBar: AppBar(
+      //   title: const Text(
+      //     '', // Empty title to remove "Profile Details"
+      //     style: TextStyle(
+      //       color: Colors.white,
+      //       fontWeight: FontWeight.bold,
+      //       fontSize: 20,
+      //     ),
+      //   ),
+      //   backgroundColor: Colors.blueAccent, // Accent color for app bar
+      //   elevation: 4,
+      //   // Removed the logout button from actions
+      // ),
       body: Consumer<ProfileProvider>(
         builder: (context, profileProvider, child) {
           if (profileProvider.isLoading) {
@@ -67,19 +60,22 @@ class _DashboardScreenState extends State<ProfileDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  // Profile Title
+                  Text(
                     'Profile Information',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                      color: Colors.blueAccent,
                     ),
                   ),
                   const SizedBox(height: 20),
+
+                  // Profile Card
                   Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -113,19 +109,20 @@ class _DashboardScreenState extends State<ProfileDetailsScreen> {
     );
   }
 
+  // Profile Item widget
   Widget _buildProfileItem(IconData icon, String label, String value) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: Colors.blue, size: 24),
-        const SizedBox(width: 12),
+        Icon(icon, color: Colors.blueAccent, size: 28),
+        const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: GoogleFonts.poppins(
                   fontSize: 14,
                   color: Colors.grey,
                   fontWeight: FontWeight.w500,
@@ -134,10 +131,10 @@ class _DashboardScreenState extends State<ProfileDetailsScreen> {
               const SizedBox(height: 4),
               Text(
                 value,
-                style: const TextStyle(
+                style: GoogleFonts.poppins(
                   fontSize: 16,
                   color: Colors.black87,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],

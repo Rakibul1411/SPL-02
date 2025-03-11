@@ -77,6 +77,10 @@ const taskSchema = new mongoose.Schema(
         required: true
       },
     }],
+    isAssigned: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true }
 );

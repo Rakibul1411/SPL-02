@@ -4,21 +4,15 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import http from "http";
-import { initSocket } from "./socket/socket.js"; // Import WebSocket function
 
-// import homeRoute from './routes/home.js';
+
 import authRoute from './routes/auth.js';
 import taskRoute from './routes/task.js';
+import taskAssignmentRoute from './routes/taskAssignmentRoute.js';
 import profileRoute from './routes/profileRoute.js';
 import reportRoute from './routes/report.js';
 import incentiveAndRatingRoute from './routes/incentive&ratingRoute.js';
 import dotenv from 'dotenv';
-
-// Task Assignment_test
-//import { createServer } from "http";
-//import { initSocket } from "./socket/socket.js";
-//import taskRouteTest from './routes/taskRoute_test.js';
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -27,9 +21,6 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 
 const app = express();
-const server = http.createServer(app); // Create an HTTP server for WebSocket
-// Task Assignment_test
-//const server = createServer(app);
 
 // 🔥 CORS configuration goes here (BEFORE routes)
 app.use(cors({
@@ -38,7 +29,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json()); // Middleware to parse JSON requests
+app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // is part of an Express.js application and is used to configure middleware for parsing incoming requests with URL-encoded payloads
 
 // Serve static files from the 'uploads' directory
@@ -49,12 +40,14 @@ mongoose.connect(process.env.MONGO_URI, {
 //    useNewUrlParser: true,
 //    useUnifiedTopology: true,
 }).then(() => {
-    console.log('✅ Connected to MongoDB')
+    console.log('Connected to MongoDB')
 
     // Routes
     app.use('/auth', authRoute);
 
     app.use('/task', taskRoute);
+
+    app.use('/taskAssignment', taskAssignmentRoute);
 
     app.use('/profile', profileRoute);
 
@@ -62,18 +55,11 @@ mongoose.connect(process.env.MONGO_URI, {
 
     app.use('/incentive', incentiveAndRatingRoute);
 
-    // Task Assignment_test
-//    app.use("/task_test", taskRouteTest);
-
     // Start server
     const PORT = process.env.PORT || 3005;
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
     });
 }).catch((err) => {
-    console.error('❌ MongoDB connection error:', err)
+    console.error('MongoDB connection error:', err)
 });
-
-// Task Assignment_test
-// Initialize WebSocket
-//initSocket(server);

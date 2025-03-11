@@ -4,6 +4,10 @@ import 'package:http/http.dart' as http;
 import 'authProvider.dart';
 
 class ProfileProvider extends StateNotifier<ProfileState> {
+  final String baseUrl = 'http://10.0.2.2:3005';
+  //final String baseUrl = 'http://localhost:3005';
+  //final String baseUrl = 'http://192.168.0.101:3005';
+
   final AuthProvider _authProvider;
 
   // Add a method to get the current user ID
@@ -23,7 +27,7 @@ class ProfileProvider extends StateNotifier<ProfileState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     final encodedEmail = Uri.encodeComponent(userEmail); // Encode the email
-    final url = Uri.parse('http://localhost:3005/profile/getProfile/$encodedEmail');
+    final url = Uri.parse('$baseUrl/profile/getProfile/$encodedEmail');
 
     print('Fetching profile from URL: $url');
 
@@ -123,7 +127,7 @@ class ProfileProvider extends StateNotifier<ProfileState> {
 
     state = state.copyWith(isLoading: true, errorMessage: null);
 
-    final url = Uri.parse('http://localhost:3005/profile/updateProfile');
+    final url = Uri.parse('$baseUrl/profile/updateProfile');
 
     try {
       final response = await http.post(
@@ -159,6 +163,34 @@ class ProfileProvider extends StateNotifier<ProfileState> {
       );
     }
   }
+
+  // Add a method to fetch shops with the role 'Shop Manager'
+  Future<void> fetchShops() async {
+    state = state.copyWith(isLoading: true, errorMessage: '');
+
+    try {
+      final url = Uri.parse('$baseUrl/profile/getUserByRole');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        state = state.copyWith(
+          shops: data.map((shop) => shop as Map<String, dynamic>).toList(),
+          isLoading: false,
+        );
+      } else {
+        state = state.copyWith(
+          errorMessage: 'Failed to fetch shops: ${response.body}',
+          isLoading: false,
+        );
+      }
+    } catch (error) {
+      state = state.copyWith(
+        errorMessage: 'Failed to connect to server: $error',
+        isLoading: false,
+      );
+    }
+  }
 }
 
 class ProfileState {
@@ -171,6 +203,7 @@ class ProfileState {
   final double? longitude;
   final bool isLoading;
   final String? errorMessage;
+  final List<Map<String, dynamic>> shops;
 
   ProfileState({
     this.name,
@@ -182,6 +215,7 @@ class ProfileState {
     this.longitude,
     this.isLoading = false,
     this.errorMessage,
+    this.shops = const [],
   });
 
   ProfileState copyWith({
@@ -194,6 +228,7 @@ class ProfileState {
     double? longitude,
     bool? isLoading,
     String? errorMessage,
+    List<Map<String, dynamic>>? shops,
   }) {
     return ProfileState(
       name: name ?? this.name,
@@ -205,6 +240,7 @@ class ProfileState {
       longitude: longitude ?? this.longitude,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage ?? this.errorMessage,
+      shops: shops ?? this.shops,
     );
   }
 

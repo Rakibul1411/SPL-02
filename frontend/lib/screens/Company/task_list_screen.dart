@@ -7,7 +7,7 @@ import 'dart:async'; // Import Timer
 
 class TaskListScreen extends ConsumerStatefulWidget {
   final String userEmail;
-  const TaskListScreen({super.key, required  this.userEmail});
+  const TaskListScreen({super.key, required this.userEmail});
 
   @override
   ConsumerState<TaskListScreen> createState() => _TaskListScreenState();
@@ -139,6 +139,7 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
           style: TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.bold,
+            fontSize: 24,
           ),
         ),
         actions: [
@@ -209,7 +210,7 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
                             child: Text(
                               task.title,
                               style: const TextStyle(
-                                fontSize: 18,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -306,61 +307,6 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
             ),
           );
         },
-      ),
-      floatingActionButton: Container(
-        margin: const EdgeInsets.only(bottom: 16, right: 16),
-        child: FloatingActionButton.extended(
-          onPressed: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => CreateTaskScreen(userEmail: widget.userEmail,),
-              ),
-            );
-            if (result == true) {
-              await ref.read(taskProvider.notifier).fetchTasksByCompanyId(widget.userEmail);
-            }
-          },
-          elevation: 4,
-          highlightElevation: 8,
-          backgroundColor: Theme.of(context).primaryColor,
-          extendedPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-          icon: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.add_task,
-              size: 20,
-              color: Colors.white,
-            ),
-          ),
-          label: Row(
-            children: [
-              const Text(
-                'New Task',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Icon(
-                Icons.arrow_forward,
-                size: 16,
-                color: Colors.white.withOpacity(0.8),
-              ),
-            ],
-          ),
-          isExtended: true,
-        ),
       ),
     );
   }

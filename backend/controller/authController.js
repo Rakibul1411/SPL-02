@@ -13,14 +13,42 @@ export const registration = async (req, res) => {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
+    let finalName = name;
+
+    if (role === 'Shop Manager') {
+      const similarNameUsers = await User.find({
+        role: 'Shop Manager',
+        name: new RegExp(`^${name}(-\\d+)?$`)
+      });
+
+      if (similarNameUsers.length > 0) {
+        const baseNamePattern = new RegExp(`^(${name})-\\d+$`);
+        const existingNumbers = similarNameUsers
+          .map(user => {
+            const match = user.name.match(baseNamePattern);
+            if (match) {
+              return parseInt(user.name.split('-').pop(), 10);
+            }
+            return 0;
+          })
+          .filter(num => !isNaN(num));
+
+        const highestNumber = existingNumbers.length > 0 ?
+          Math.max(...existingNumbers) : 0;
+
+        finalName = `${name}-${highestNumber + 1}`;
+      } else {
+        finalName = `${name}-1`;
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Generate OTP for registration
     const otp = generateOTP();
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
-
     const newUser = new User({
-      name,
+      name: finalName,
       email,
       password: hashedPassword,
       role,
@@ -30,7 +58,6 @@ export const registration = async (req, res) => {
       latitude,
       longitude,
     });
-
     await newUser.save();
     await sendOTP(email, otp);
 

@@ -9,7 +9,9 @@ final taskProvider = StateNotifierProvider<TaskNotifier, List<Task>>((ref) {
 
 class TaskNotifier extends StateNotifier<List<Task>> {
   //final String baseUrl = 'http://192.168.0.101:3005';
-  final String baseUrl = 'http://localhost:3005';
+  //final String baseUrl = 'http://localhost:3005';
+  final String baseUrl = 'http://10.0.2.2:3005';
+
 
   TaskNotifier() : super([]);
 
@@ -150,4 +152,286 @@ class TaskNotifier extends StateNotifier<List<Task>> {
       rethrow;
     }
   }
+
+// Accept a task
+  Future<void> acceptTask(String taskId, String userEmail) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/task/$taskId/taskAccepted/$userEmail'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        // Task accepted successfully, refresh the task list
+        await fetchTasksById(userEmail);
+      } else {
+        throw Exception('Failed to accept task: ${response.body}');
+      }
+    } catch (error) {
+      print('Error accepting task: $error');
+      rethrow;
+    }
+  }
+
+  // Reject a task
+  Future<void> rejectTask(String taskId, String userEmail) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/task/$taskId/taskRejected/$userEmail'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        // Task rejected successfully, refresh the task list
+        await fetchTasksById(userEmail);
+      } else {
+        throw Exception('Failed to reject task: ${response.body}');
+      }
+    } catch (error) {
+      print('Error rejecting task: $error');
+      rethrow;
+    }
+  }
+
+  // Accept tasks
+  Future<void> getAcceptedTask(String userEmail) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/task/getAcceptedTasks/$userEmail'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> taskList = json.decode(response.body);
+        state = taskList.map((task) => Task.fromJson(task)).toList(); // Update state with accepted tasks
+      } else {
+        throw Exception('Failed to fetch accepted tasks: ${response.body}');
+      }
+    } catch (error) {
+      print('Error fetching accepted tasks: $error');
+      rethrow;
+    }
+  }
+
+// Reject tasks
+  Future<void> getRejectedTasks(String userEmail) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/task/getRejectedTasks/$userEmail'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> taskList = json.decode(response.body);
+        state = taskList.map((task) => Task.fromJson(task)).toList(); // Update state with rejected tasks
+      } else {
+        throw Exception('Failed to fetch rejected tasks: ${response.body}');
+      }
+    } catch (error) {
+      print('Error fetching rejected tasks: $error');
+      rethrow;
+    }
+  }
+
+  // Fetch accepted tasks for the company
+  Future<void> fetchAcceptedTasksForCompany(String taskId, String userEmail) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/task/getAcceptedTasksForCompany/$userEmail'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> taskList = json.decode(response.body);
+        state = taskList.map((task) => Task.fromJson(task)).toList();
+      } else {
+        throw Exception('Failed to fetch accepted tasks for company: ${response.body}');
+      }
+    } catch (error) {
+      print('Error fetching accepted tasks for company: $error');
+      rethrow;
+    }
+  }
+
+// Fetch rejected tasks for the company
+  Future<void> fetchRejectedTasksForCompany(String taskId, String userEmail) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/task/getRejectedTasksForCompany/$userEmail'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> taskList = json.decode(response.body);
+        state = taskList.map((task) => Task.fromJson(task)).toList();
+      } else {
+        throw Exception('Failed to fetch rejected tasks for company: ${response.body}');
+      }
+    } catch (error) {
+      print('Error fetching rejected tasks for company: $error');
+      rethrow;
+    }
+  }
+
+  // Add this method to your TaskNotifier class in task_provider.dart
+
+// Update the fetchAcceptedOrRejectedTasksForCompany method
+  Future<void> fetchAcceptedOrRejectedTasksForCompany(String userEmail) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/task/getAcceptedOrRejectedTasksForCompany/$userEmail'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> taskList = json.decode(response.body);
+
+        // Convert the API response to Task objects with the worker details included
+        state = taskList.map((taskData) {
+          // Create a Task object with the basic task info
+          Task basicTask = Task(
+            id: taskData['taskId'],
+            title: taskData['title'] ?? '',
+            companyId: '', // Not provided in the API response, but required by Task model
+            description: taskData['description'] ?? '',
+            shopName: taskData['shopName'] ?? '',
+            incentive: (taskData['incentive'] as num?)?.toDouble() ?? 0.0,
+            deadline: DateTime.parse(taskData['deadline'] ?? DateTime.now().toIso8601String()),
+            status: taskData['status'] ?? 'pending',
+            latitude: (taskData['latitude'] as num?)?.toDouble() ?? 0.0,
+            longitude: (taskData['longitude'] as num?)?.toDouble() ?? 0.0,
+            selectedWorkers: [], // We'll populate this later if needed
+            acceptedByWorkers: (taskData['acceptedWorkers'] as List<dynamic>?)?.map((worker) {
+              return AcceptedByWorker(
+                workerId: '', // API doesn't return workerId in this response
+                email: worker['email'] ?? '',
+              );
+            }).toList() ?? [],
+            rejectedByWorkers: (taskData['rejectedWorkers'] as List<dynamic>?)?.map((worker) {
+              return RejectedByWorker(
+                workerId: '', // API doesn't return workerId in this response
+                email: worker['email'] ?? '',
+              );
+            }).toList() ?? [],
+          );
+
+          return basicTask;
+        }).toList();
+      } else {
+        throw Exception('Failed to fetch tasks: ${response.body}');
+      }
+    } catch (error) {
+      print('Error fetching tasks: $error');
+      rethrow;
+    }
+  }
+
+  // Fetch all tasks
+  bool isLoading = false;
+  // String? errorMessage;
+  Future<void> fetchTasks() async {
+    isLoading = true;
+    // errorMessage = null;
+
+    try {
+      final url = Uri.parse('$baseUrl/tasks/all');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        final tasks = data.map((item) => Task.fromJson(item)).toList();
+
+        state = tasks;
+      } else {
+        throw Exception('Failed to fetch all tasks: ${response.body}');
+      }
+    } catch (error) {
+      print('Error fetching tasks: $error');
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  // Add this method to the TaskNotifier class in task_provider.dart
+
+  Future<void> fetchFinishedTasksByCompanyId(String userEmail) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/task/finishedTasksByCompanyId/$userEmail'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> taskList = json.decode(response.body);
+        state = taskList.map((task) => Task.fromJson(task)).toList();
+      } else {
+        throw Exception('Failed to fetch finished tasks: ${response.body}');
+      }
+    } catch (error) {
+      print('Error fetching finished tasks: $error');
+      rethrow;
+    }
+  }
+
+  // Add this method to TaskNotifier in task_provider.dart
+  Future<void> fetchAssignableTasks(String userEmail) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/task/getAssignableTasks/$userEmail'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> taskList = json.decode(response.body);
+        state = taskList.map((task) => Task.fromJson(task)).toList();
+      } else {
+        throw Exception('Failed to fetch assignable tasks: ${response.body}');
+      }
+    } catch (error) {
+      print('Error fetching assignable tasks: $error');
+      rethrow;
+    }
+  }
+
+
+// Fetch total finished tasks for a company
+  Future<int> fetchTotalFinishedTasksByCompanyId(String userEmail) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/task/totalFinishedTasksByCompanyId/$userEmail'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return data['count'] ?? 0; // Return the count of finished tasks
+      } else {
+        throw Exception('Failed to fetch finished tasks: ${response.body}');
+      }
+    } catch (error) {
+      print('Error fetching finished tasks: $error');
+      rethrow;
+    }
+  }
+
+// Fetch total pending tasks for a company (based on deadline)
+  Future<int> fetchTotalPendingTasksByCompanyId(String userEmail) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/task/totalPendingTasksByCompanyId/$userEmail'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return data['count'] ?? 0; // Return the count of pending tasks
+      } else {
+        throw Exception('Failed to fetch pending tasks: ${response.body}');
+      }
+    } catch (error) {
+      print('Error fetching pending tasks: $error');
+      rethrow;
+    }
+  }
+
 }

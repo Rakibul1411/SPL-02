@@ -150,3 +150,76 @@ class RejectedByWorker {
     );
   }
 }
+
+// Add this to your task_model.dart file after the existing Worker class
+
+class WorkerDetails {
+  final String name;
+  final String email;
+  final double distance;
+
+  WorkerDetails({
+    required this.name,
+    required this.email,
+    required this.distance,
+  });
+
+  factory WorkerDetails.fromJson(Map<String, dynamic> json) {
+    return WorkerDetails(
+      name: json['name'] ?? 'Unknown',
+      email: json['email'] ?? '',
+      distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}
+
+// Update the Task model to include the new worker details fields
+class TaskWithWorkerDetails {
+  final String taskId;
+  final String title;
+  final String description;
+  final String shopName;
+  final double incentive;
+  final DateTime deadline;
+  final String status;
+  final double latitude;
+  final double longitude;
+  final List<WorkerDetails> acceptedWorkers;
+  final List<WorkerDetails> rejectedWorkers;
+
+  TaskWithWorkerDetails({
+    required this.taskId,
+    required this.title,
+    required this.description,
+    required this.shopName,
+    required this.incentive,
+    required this.deadline,
+    required this.status,
+    required this.latitude,
+    required this.longitude,
+    required this.acceptedWorkers,
+    required this.rejectedWorkers,
+  });
+
+  factory TaskWithWorkerDetails.fromJson(Map<String, dynamic> json) {
+    return TaskWithWorkerDetails(
+      taskId: json['taskId'] ?? '',
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
+      shopName: json['shopName'] ?? '',
+      incentive: (json['incentive'] as num?)?.toDouble() ?? 0.0,
+      deadline: DateTime.parse(json['deadline'] ?? DateTime.now().toIso8601String()),
+      status: json['status'] ?? 'pending',
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+      acceptedWorkers: (json['acceptedWorkers'] as List<dynamic>?)
+          ?.map((worker) => WorkerDetails.fromJson(worker))
+          .toList() ??
+          [],
+      rejectedWorkers: (json['rejectedWorkers'] as List<dynamic>?)
+          ?.map((worker) => WorkerDetails.fromJson(worker))
+          .toList() ??
+          [],
+    );
+  }
+}

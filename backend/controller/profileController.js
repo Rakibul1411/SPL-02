@@ -65,3 +65,45 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: 'Failed to update profile', error: error.message });
   }
 };
+
+
+export const getUserByEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    // Find the user by email
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json(user);
+  } catch (err) {
+    console.error('Error fetching user by email:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+export const getUserByRole = async (req, res) => {
+  try {
+    // Hardcode the role to 'Shop Manager'
+    const role = 'Shop Manager';
+
+    // Fetch all users with the role 'Shop Manager'
+    const users = await User.find({ role }, { name: 1, email: 1, latitude: 1, longitude: 1, _id: 0 });
+
+    // If no users are found, return a 404 error
+    if (users.length === 0) {
+      return res.status(404).json({ error: 'No users found with the role Shop Manager' });
+    }
+
+    // Return the list of users with the role 'Shop Manager'
+    res.status(200).json(users);
+  } catch (err) {
+    // Handle any errors that occur during the process
+    console.error('Error fetching users by role:', err);
+    res.status(500).json({ error: err.message });
+  }
+};

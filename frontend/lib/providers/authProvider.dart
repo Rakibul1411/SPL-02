@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class AuthProvider {
-  final String baseUrl = 'http://10.0.2.2:3005'; // Replace with your backend URL
   //final String baseUrl = 'http://localhost:3005'; // Replace with your backend URL
+  final String baseUrl = 'http://10.0.2.2:3005';
 
   // Register User
   Future<Map<String, dynamic>> registerUser(

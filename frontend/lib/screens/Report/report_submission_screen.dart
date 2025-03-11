@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../providers/report_service_test.dart';
 
 class ReportSubmissionScreen extends StatefulWidget {
@@ -26,6 +27,15 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
   bool _isSubmitting = false;
 
   final ReportService _reportService = ReportService();
+
+  // Define colors to match UpdatePasswordScreen
+  final Color _primaryColor = const Color(0xFF2563EB); // Blue 600
+  final Color _secondaryColor = const Color(0xFF7C3AED); // Purple 600
+  final Color _accentColor = const Color(0xFF14B8A6); // Teal 500
+  final Color _bgColor = const Color(0xFFF9FAFB); // Gray 50
+  final Color _cardColor = Colors.white;
+  final Color _textColor = const Color(0xFF1F2937); // Gray 800
+  final Color _subtextColor = const Color(0xFF6B7280); // Gray 500
 
   // Function to pick multiple images
   Future<void> _pickImages() async {
@@ -99,16 +109,15 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
       SnackBar(
         content: Text(
           message,
-          style: TextStyle(fontWeight: FontWeight.w500),
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
         ),
-        backgroundColor: Colors.red.shade800,
+        backgroundColor: _secondaryColor,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
 
-  // Function to submit the report
   Future<void> _submitReport() async {
     if (!_formKey.currentState!.validate()) return;
     if (!mounted) return;
@@ -129,33 +138,37 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              SizedBox(width: 12),
-              Text('Report submitted successfully'),
-            ],
-          ),
-          backgroundColor: Colors.green.shade700,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 12),
+                Text('Report submitted successfully'),
+              ],
+            ),
+            backgroundColor: _accentColor,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ));
 
-      Future.microtask(() {
+          Future.microtask(() {
         if (mounted) {
           Navigator.pop(context);
         }
       });
     } catch (e) {
-      if (!mounted) return;
-      _showErrorSnackBar('Failed to submit report: $e');
+    if (!mounted) return;
+    if (e.toString().contains("You are not verified by the shop")) {
+    _showErrorSnackBar('You are not verified by the shop. Please get verified before submitting the report.');
+    } else {
+    _showErrorSnackBar('Failed to submit report: $e');
+    }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
+    if (mounted) {
+    setState(() {
+    _isSubmitting = false;
+    });
+    }
     }
   }
 
@@ -192,12 +205,12 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
               leading: Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  color: _primaryColor.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.camera_alt, color: Theme.of(context).primaryColor),
+                child: Icon(Icons.camera_alt, color: _primaryColor),
               ),
-              title: Text('Take Photo', style: TextStyle(fontWeight: FontWeight.w500)),
+              title: Text('Take Photo', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
               onTap: () {
                 Navigator.pop(context);
                 _takePhoto();
@@ -208,12 +221,12 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
               leading: Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  color: _primaryColor.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.photo_library, color: Theme.of(context).primaryColor),
+                child: Icon(Icons.photo_library, color: _primaryColor),
               ),
-              title: Text('Choose from Gallery', style: TextStyle(fontWeight: FontWeight.w500)),
+              title: Text('Choose from Gallery', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
               onTap: () {
                 Navigator.pop(context);
                 _pickImages();
@@ -233,21 +246,19 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primaryColor = theme.primaryColor;
-
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: _bgColor,
       appBar: AppBar(
         title: Text(
           'Submit Report',
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
             fontSize: 18,
+            color: _textColor,
           ),
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: _cardColor,
+        foregroundColor: _textColor,
         elevation: 0,
         centerTitle: true,
       ),
@@ -268,28 +279,36 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                           children: [
                             Text(
                               'Report Details',
-                              style: TextStyle(
+                              style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.black87,
+                                color: _textColor,
                               ),
                             ),
                             SizedBox(height: 16),
                             TextFormField(
                               controller: _reportTextController,
                               maxLines: 6,
-                              style: TextStyle(
+                              style: GoogleFonts.poppins(
                                 fontSize: 15,
-                                color: Colors.black87,
+                                color: _textColor,
                               ),
                               decoration: InputDecoration(
                                 hintText: 'Describe the situation or findings in detail...',
-                                hintStyle: TextStyle(color: Colors.grey.shade500),
+                                hintStyle: GoogleFonts.poppins(color: _subtextColor),
                                 filled: true,
-                                fillColor: Colors.grey.shade100,
+                                fillColor: _bgColor,
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide.none,
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(color: _subtextColor.withOpacity(0.5)),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(color: _subtextColor.withOpacity(0.5)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(color: _primaryColor, width: 2),
                                 ),
                                 contentPadding: EdgeInsets.all(16),
                               ),
@@ -309,17 +328,17 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                               children: [
                                 Text(
                                   'Images',
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
+                                    color: _textColor,
                                   ),
                                 ),
                                 if (_selectedImages.length < 10)
                                   TextButton(
                                     onPressed: _showImageSourceSelection,
                                     style: TextButton.styleFrom(
-                                      foregroundColor: primaryColor,
+                                      foregroundColor: _primaryColor,
                                       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(4),
@@ -332,7 +351,7 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                                         SizedBox(width: 4),
                                         Text(
                                           'Add Image',
-                                          style: TextStyle(fontWeight: FontWeight.w500),
+                                          style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                                         ),
                                       ],
                                     ),
@@ -347,22 +366,22 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                                 width: double.infinity,
                                 padding: EdgeInsets.symmetric(vertical: 32),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.grey.shade200),
+                                  color: _bgColor,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: _subtextColor.withOpacity(0.5)),
                                 ),
                                 child: Column(
                                   children: [
                                     Icon(
                                       Icons.image_outlined,
                                       size: 40,
-                                      color: Colors.grey.shade400,
+                                      color: _subtextColor,
                                     ),
                                     SizedBox(height: 8),
                                     Text(
                                       'No images attached',
-                                      style: TextStyle(
-                                        color: Colors.grey.shade600,
+                                      style: GoogleFonts.poppins(
+                                        color: _subtextColor,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -370,11 +389,11 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                                     ElevatedButton(
                                       onPressed: _showImageSourceSelection,
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: primaryColor,
+                                        backgroundColor: _primaryColor,
                                         foregroundColor: Colors.white,
                                         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(4),
+                                          borderRadius: BorderRadius.circular(12),
                                         ),
                                         elevation: 0,
                                       ),
@@ -398,7 +417,7 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                                     children: [
                                       Container(
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(12),
                                           image: DecorationImage(
                                             image: FileImage(_selectedImages[index]),
                                             fit: BoxFit.cover,
@@ -442,17 +461,17 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                               children: [
                                 Text(
                                   'Documents',
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
+                                    color: _textColor,
                                   ),
                                 ),
                                 if (_selectedFiles.length < 10)
                                   TextButton(
                                     onPressed: _pickFiles,
                                     style: TextButton.styleFrom(
-                                      foregroundColor: primaryColor,
+                                      foregroundColor: _primaryColor,
                                       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(4),
@@ -465,7 +484,7 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                                         SizedBox(width: 4),
                                         Text(
                                           'Add File',
-                                          style: TextStyle(fontWeight: FontWeight.w500),
+                                          style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                                         ),
                                       ],
                                     ),
@@ -480,22 +499,22 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                                 width: double.infinity,
                                 padding: EdgeInsets.symmetric(vertical: 32),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.grey.shade200),
+                                  color: _bgColor,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: _subtextColor.withOpacity(0.5)),
                                 ),
                                 child: Column(
                                   children: [
                                     Icon(
                                       Icons.description_outlined,
                                       size: 40,
-                                      color: Colors.grey.shade400,
+                                      color: _subtextColor,
                                     ),
                                     SizedBox(height: 8),
                                     Text(
                                       'No documents attached',
-                                      style: TextStyle(
-                                        color: Colors.grey.shade600,
+                                      style: GoogleFonts.poppins(
+                                        color: _subtextColor,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -503,11 +522,11 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                                     ElevatedButton(
                                       onPressed: _pickFiles,
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: primaryColor,
+                                        backgroundColor: _primaryColor,
                                         foregroundColor: Colors.white,
                                         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(4),
+                                          borderRadius: BorderRadius.circular(12),
                                         ),
                                         elevation: 0,
                                       ),
@@ -545,22 +564,23 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                                     ),
                                     title: Text(
                                       fileName,
-                                      style: TextStyle(
+                                      style: GoogleFonts.poppins(
                                         fontWeight: FontWeight.w500,
                                         fontSize: 14,
+                                        color: _textColor,
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     subtitle: Text(
                                       _getFileSize(_selectedFiles[index]),
-                                      style: TextStyle(
+                                      style: GoogleFonts.poppins(
                                         fontSize: 12,
-                                        color: Colors.grey.shade600,
+                                        color: _subtextColor,
                                       ),
                                     ),
                                     trailing: IconButton(
-                                      icon: Icon(Icons.delete_outline, color: Colors.grey.shade700),
+                                      icon: Icon(Icons.delete_outline, color: _subtextColor),
                                       onPressed: () => _removeFile(index),
                                     ),
                                   );
@@ -578,7 +598,7 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
             // Submit button container
             Container(
               width: double.infinity,
-              color: Colors.white,
+              color: _cardColor,
               padding: EdgeInsets.all(16),
               child: Container(
                 width: double.infinity,
@@ -586,12 +606,12 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : _submitReport,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    disabledBackgroundColor: primaryColor.withOpacity(0.5),
+                    backgroundColor: _primaryColor,
+                    disabledBackgroundColor: _primaryColor.withOpacity(0.5),
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   child: _isSubmitting
@@ -605,7 +625,7 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                   )
                       : Text(
                     'Submit Report',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.5,
@@ -626,7 +646,7 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
